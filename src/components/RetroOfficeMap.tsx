@@ -11,6 +11,8 @@ import {
   type WandererState,
 } from "@/hooks/useOfficeLife";
 import NunCharacter from "./NunCharacter";
+import FreeKnightCharacter, { useFacing } from "@/characters/freeKnight/FreeKnightCharacter";
+import { FREE_KNIGHT_CONFIG } from "@/characters/freeKnight/config";
 
 /* El mapa se modela en una cuadrícula de 20x14 "tiles" convertidos a
  * porcentajes. La sala está inset sobre un fondo oscuro, como un mapa
@@ -145,6 +147,19 @@ const ORACLE_LIFE: WandererConfig = {
   ],
   minRest: 12000,
   maxRest: 26000,
+};
+
+/* El Free Knight ronda la zona baja de la sala principal. */
+const KNIGHT_HOME: TilePos = { tx: 5.6, ty: 10.6 };
+const KNIGHT_LIFE: WandererConfig = {
+  id: "knight",
+  home: KNIGHT_HOME,
+  pois: [
+    { tx: 9.0, ty: 6.3 }, // pasillo central
+    { tx: 10.5, ty: 11.2 }, // junto a la impresora
+  ],
+  minRest: 10000,
+  maxRest: 22000,
 };
 
 const JARVIS_PATROL: WandererConfig[] = [
@@ -698,6 +713,25 @@ function ModuleStation({
   );
 }
 
+/** Free Knight en el mapa: posición por vida de oficina + mirada según rumbo. */
+function KnightNPC({ life }: { life?: WandererState }) {
+  const pos = life?.pos ?? KNIGHT_HOME;
+  const facing = useFacing(pos.tx);
+  return (
+    <div
+      className="absolute z-20 flex flex-col items-center character-move"
+      style={{
+        left: `${px(pos.tx)}%`,
+        top: `${py(pos.ty)}%`,
+        width: `${FREE_KNIGHT_CONFIG.mapWidthPct}%`,
+      }}
+    >
+      <FloatingLabel name="Knight" color="#9aa2b8" blinking={!!life?.walking} />
+      <FreeKnightCharacter walking={life?.walking} facing={facing} />
+    </div>
+  );
+}
+
 /* ===== Mapa principal ===== */
 
 const NPC_LIFE: WandererConfig[] = [
@@ -707,6 +741,7 @@ const NPC_LIFE: WandererConfig[] = [
     pois: NPC_POIS[s.id] ?? [],
   })),
   ORACLE_LIFE,
+  KNIGHT_LIFE,
 ];
 
 export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
@@ -903,7 +938,7 @@ export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
         return (
           <div
             className="absolute z-20 flex flex-col items-center character-move"
-            style={{ left: `${px(pos.tx)}%`, top: `${py(pos.ty)}%`, width: "6.4%" }}
+            style={{ left: `${px(pos.tx)}%`, top: `${py(pos.ty)}%`, width: "7.0%" }}
           >
             <FloatingLabel
               name="Oracle"
@@ -918,6 +953,9 @@ export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
           </div>
         );
       })()}
+
+      {/* Free Knight: avatar de spritesheet (FreeKnight_v1) */}
+      <KnightNPC life={npcLife["knight"]} />
 
       {/* Jarvis */}
       <JarvisCharacter
