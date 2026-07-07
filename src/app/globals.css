@@ -43,6 +43,20 @@
   --state-done: var(--green);
   --state-off: #70708a;
 
+  /* --- paleta del mapa pixel-art (oficina) --- */
+  --pixel-outside: #1b1c2c;
+  --pixel-wall: #f4f0df;
+  --pixel-wall-shadow: #d7d1bd;
+  --pixel-wall-outline: rgba(46, 48, 70, 0.55);
+  --pixel-floor: #b8d1bd;
+  --pixel-floor-alt: #b1cab6;
+  --pixel-floor-line: #9fb8a6;
+  --wood-main: #c99b5d;
+  --wood-shadow: #8f6338;
+  --monitor-dark: #2f4054;
+  --monitor-glow: #66f28a;
+  --label-bg: #24263a;
+
   /* --- tipografía (next/font inyecta --font-title y --font-terminal) --- */
   --font-pixel: var(--font-title, "Courier New"), "Courier New", ui-monospace, monospace;
   --font-term: var(--font-terminal, "Courier New"), "Courier New", ui-monospace, monospace;

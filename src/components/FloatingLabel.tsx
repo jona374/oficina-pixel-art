@@ -1,20 +1,24 @@
 type Props = {
   name: string;
-  color?: string; // color del punto de estado
+  color?: string; // color del punto LED de estado
   blinking?: boolean;
 };
 
-/** Etiqueta flotante estilo "nametag" sobre personajes y módulos. */
-export default function FloatingLabel({ name, color = "#7ee787", blinking }: Props) {
+/** Etiqueta flotante estilo "nametag" de videojuego. */
+export default function FloatingLabel({ name, color = "#62ff8e", blinking }: Props) {
   return (
-    <div className="flex items-center gap-1 bg-black/80 border border-white/20 px-1.5 py-0.5 whitespace-nowrap">
+    <div
+      className="flex items-center gap-1.5 px-2 py-[3px] whitespace-nowrap rounded-[3px] border border-white/15"
+      style={{
+        backgroundColor: "var(--label-bg)",
+        boxShadow: "0 2px 0 rgba(0,0,0,0.35)",
+      }}
+    >
       <span
         className={`inline-block w-1.5 h-1.5 rounded-full ${blinking ? "anim-blink" : ""}`}
-        style={{ backgroundColor: color }}
+        style={{ backgroundColor: color, boxShadow: `0 0 4px ${color}` }}
       />
-      <span className="text-[8px] leading-none text-white font-pixel tracking-wide">
-        {name}
-      </span>
+      <span className="text-[8px] leading-none text-white tracking-wide">{name}</span>
     </div>
   );
 }
