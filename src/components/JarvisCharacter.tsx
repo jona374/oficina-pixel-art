@@ -98,7 +98,8 @@ export default function JarvisCharacter({ state, x, y }: Props) {
         color={STATE_COLOR[state]}
         blinking={state === "running" || state === "thinking"}
       />
-      <div className={`w-full aspect-[12/14] mt-0.5 ${moving ? "anim-walk" : "anim-bob"}`}>
+      <div className={`relative w-full aspect-[12/14] mt-0.5 ${moving ? "anim-walk" : "anim-bob"}`}>
+        <div className="sprite-shadow" />
         <PixelPerson hair="#e8e8e8" skin="#f0c8a0" shirt="#f5f0e8" pants="#8a7a5a" />
       </div>
     </div>

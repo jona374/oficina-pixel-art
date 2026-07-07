@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useGatewayAuth } from "@/hooks/useGatewayAuth";
+import { PixelPerson } from "./JarvisCharacter";
 
 export default function GatewayLogin({ onAuthenticated }: { onAuthenticated: () => void }) {
   const { authState, login } = useGatewayAuth();
@@ -19,6 +20,10 @@ export default function GatewayLogin({ onAuthenticated }: { onAuthenticated: () 
     <div className="min-h-screen flex items-center justify-center bg-crt-bg p-4">
       <div className="crt-frame bg-crt-panel w-full max-w-md p-8">
         <div className="text-center mb-8 space-y-2">
+          <div className="relative w-12 aspect-[12/14] mx-auto anim-bob">
+            <div className="sprite-shadow" />
+            <PixelPerson hair="#e8e8e8" skin="#f0c8a0" shirt="#f5f0e8" pants="#8a7a5a" />
+          </div>
           <pre className="text-crt-green text-[10px] leading-tight inline-block text-left">
 {` ┌─────────────────────────┐
  │  JARVIS · OPENCLAW  v0.1 │

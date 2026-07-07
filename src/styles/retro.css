@@ -77,6 +77,82 @@
 .think-dot-2 { animation-delay: 0.2s; }
 .think-dot-3 { animation-delay: 0.4s; }
 
+/* ===== Ambiente de la oficina ===== */
+
+/* Sombra elíptica bajo personajes y muebles */
+.sprite-shadow {
+  position: absolute;
+  bottom: -2px;
+  left: 12%;
+  width: 76%;
+  height: 22%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.28), transparent 68%);
+  pointer-events: none;
+}
+
+/* Vapor del café */
+@keyframes steam-rise {
+  0% { opacity: 0; transform: translateY(0) scaleX(1); }
+  30% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateY(-10px) scaleX(1.6); }
+}
+.anim-steam { animation: steam-rise 2.2s ease-out infinite; }
+.steam-2 { animation-delay: 0.7s; }
+.steam-3 { animation-delay: 1.4s; }
+
+/* Plantas que se mecen */
+@keyframes sway {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+.anim-sway {
+  animation: sway 3.4s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+/* Parpadeo suave de pantallas activas */
+@keyframes screen-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  95% { opacity: 0.75; }
+}
+.anim-screen { animation: screen-flicker 2.8s steps(1) infinite; }
+
+/* Luz que entra por las ventanas */
+.light-shaft {
+  position: absolute;
+  background: linear-gradient(to bottom, rgba(255, 250, 210, 0.30), rgba(255, 250, 210, 0));
+  transform: skewX(-7deg);
+  transform-origin: top center;
+  pointer-events: none;
+}
+
+/* Viñeta suave sobre el mapa */
+.map-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(10, 10, 20, 0.35) 100%);
+  z-index: 38;
+}
+
+/* LED de encendido del "monitor" */
+@keyframes led-breathe {
+  0%, 100% { box-shadow: 0 0 4px 1px rgba(126, 231, 135, 0.8); opacity: 1; }
+  50% { box-shadow: 0 0 2px 0 rgba(126, 231, 135, 0.4); opacity: 0.7; }
+}
+.crt-led {
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #7ee787;
+  animation: led-breathe 2.5s ease-in-out infinite;
+  z-index: 45;
+}
+
 /* El personaje se desliza entre estaciones */
 .character-move {
   transition: left 1.4s ease-in-out, top 1.4s ease-in-out;
