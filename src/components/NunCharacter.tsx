@@ -55,6 +55,7 @@ const NUN_PALETTE: Record<string, string> = {
   K: "#20202c", // ojos
   G: "#d9ae4e", // dorado
   g: "#a77f2a", // dorado oscuro
+  H: "#4a3626", // mechón de cabello bajo la cofia
 };
 
 const NUN_BODY: string[] = [
@@ -66,8 +67,8 @@ const NUN_BODY: string[] = [
   ".......OVVVVVVVVO.......",
   ".......OVWWWWWWVO.......",
   "......OVWWWWWWWWVO......",
-  "......OVWSSSSSSWVO......",
-  "......OVWSSSSSSWVO......",
+  "......OVWHSSSSSWVO......",
+  "......OVWHSSSSSWVO......",
   "......OVWSKSSKSWVO......",
   "......OVWSSSSSSWVO......",
   "......OVWsSSSSsWVO......",

@@ -2,7 +2,8 @@
 
 import type { AgentStatus, ModuleId } from "@/types/agent";
 import FloatingLabel from "./FloatingLabel";
-import JarvisCharacter, { PixelPerson, type PersonConfig } from "./JarvisCharacter";
+import JarvisCharacter from "./JarvisCharacter";
+import CastSprite from "./CastSprites";
 import {
   useOfficeLife,
   type TilePos,
@@ -34,7 +35,6 @@ type StationDef = {
   name: string;
   color: string;
   desk: { tx: number; ty: number };
-  npc?: PersonConfig;
   /** Animación idle propia del rol (la oficina se siente viva). */
   idleAnim: string;
   /** Icono de la burbuja de actividad que aparece cada pocos segundos. */
@@ -52,11 +52,6 @@ const STATIONS: StationDef[] = [
     name: "Memory",
     color: "#f6c85f",
     desk: { tx: 2.5, ty: 3.9 },
-    npc: {
-      hair: "#5a3b1e", skin: "#e8b088", shirt: "#e0b060", pants: "#4a4a5a",
-      hairStyle: "short", outfit: "vest", outfitAccent: "#a8823c",
-      accessory: "glasses", hold: "folder",
-    },
     idleAnim: "anim-sort",
     activity: "folder",
     activityDelay: 0,
@@ -69,10 +64,6 @@ const STATIONS: StationDef[] = [
     name: "Status",
     color: "#62ff8e",
     desk: { tx: 7.6, ty: 3.6 },
-    npc: {
-      hair: "#222222", skin: "#c88a5a", shirt: "#5bc46a", pants: "#3a3a4a",
-      hairStyle: "spiky", hold: "tablet",
-    },
     idleAnim: "anim-scan",
     activity: "bars",
     activityDelay: 1.6,
@@ -85,11 +76,6 @@ const STATIONS: StationDef[] = [
     name: "OpenClaw",
     color: "#b088e0",
     desk: { tx: 14.4, ty: 3.2 },
-    npc: {
-      hair: "#1a1a24", skin: "#f0c8a0", shirt: "#8a6ad0", pants: "#2e2640",
-      hairStyle: "short", outfit: "suit", outfitAccent: "#4a3f6e",
-      accessory: "badge",
-    },
     idleAnim: "anim-command",
     activity: "core",
     activityDelay: 3.2,
@@ -102,11 +88,6 @@ const STATIONS: StationDef[] = [
     name: "Browser",
     color: "#60a5e0",
     desk: { tx: 14.4, ty: 8.8 },
-    npc: {
-      hair: "#8a4a2a", skin: "#e8b088", shirt: "#4a8ac8", pants: "#4a4a5a",
-      hairStyle: "ponytail", outfit: "hoodie", outfitAccent: "#2f6ea6",
-      hold: "paper",
-    },
     idleAnim: "anim-read",
     activity: "search",
     activityDelay: 4.8,
@@ -119,11 +100,6 @@ const STATIONS: StationDef[] = [
     name: "Tools",
     color: "#e08a60",
     desk: { tx: 7.6, ty: 10.0 },
-    npc: {
-      hair: "#c8a030", skin: "#f0c8a0", shirt: "#f0e0c8", pants: "#3a3a4a",
-      hairStyle: "cap", capColor: "#d87a50", outfit: "overalls",
-      outfitAccent: "#b05a3a", hold: "wrench",
-    },
     idleAnim: "anim-tinker",
     activity: "wrench",
     activityDelay: 6.4,
@@ -680,7 +656,7 @@ function ModuleStation({
   isActive: boolean;
   life?: WandererState;
 }) {
-  const { desk, npc, name, color, id, idleAnim, activity, activityDelay, screen } = station;
+  const { desk, name, color, id, idleAnim, activity, activityDelay, screen } = station;
   const wide = id === "openclaw";
   // Si su módulo está activo, el NPC vuelve a su puesto de inmediato.
   const home = npcHome(station);
@@ -703,16 +679,14 @@ function ModuleStation({
           </div>
         )}
         <FloatingLabel name={name} color={color} blinking={isActive} />
-        {npc && (
-          <div
-            className={`relative w-[72%] aspect-[12/14] mt-0.5 ${
-              isActive || walking ? "anim-walk" : idleAnim
-            }`}
-          >
-            <div className="sprite-shadow" />
-            <PixelPerson {...npc} />
-          </div>
-        )}
+        <div
+          className={`relative w-[92%] aspect-[22/24] mt-0.5 ${
+            isActive || walking ? "anim-walk" : idleAnim
+          }`}
+        >
+          <div className="sprite-shadow" />
+          <CastSprite id={id} />
+        </div>
       </div>
       <Deco tx={desk.tx} ty={desk.ty} tw={wide ? 3.1 : 2.7} th={1.75} z={15}>
         <Desk active={isActive} wide={wide} screen={screen} />
