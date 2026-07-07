@@ -6,6 +6,8 @@ type Props = {
   /** Posición en % relativa al mapa. */
   x: number;
   y: number;
+  /** true mientras pasea en idle (patrulla de la oficina). */
+  walking?: boolean;
 };
 
 const STATE_COLOR: Record<AgentState, string> = {
@@ -26,12 +28,12 @@ export type PersonConfig = {
   hairStyle?: "short" | "einstein" | "spiky" | "cap" | "ponytail" | "afro";
   capColor?: string;
   /** Ropa con personalidad. */
-  outfit?: "plain" | "coat" | "vest" | "overalls" | "suit" | "hoodie";
+  outfit?: "plain" | "coat" | "vest" | "overalls" | "suit" | "hoodie" | "jersey";
   outfitAccent?: string;
   /** Accesorio identitario. */
   accessory?: "glasses" | "headset" | "tie" | "badge";
   /** Objeto en la mano: cuenta qué está haciendo. */
-  hold?: "folder" | "wrench" | "paper" | "tablet";
+  hold?: "folder" | "wrench" | "paper" | "tablet" | "ball";
 };
 
 /** Sprite pixel-art configurable: peinado + ropa + accesorio + objeto. */
@@ -96,6 +98,17 @@ export function PixelPerson({
           <rect x="6.5" y="6.6" width="0.5" height="1.6" fill={accent} />
         </>
       )}
+      {outfit === "jersey" && (
+        <>
+          {/* cuello y mangas con franja (trim de selección) */}
+          <rect x="4.6" y="6" width="2.8" height="0.7" fill={accent} />
+          <rect x="2" y="6" width="1" height="1.2" fill={accent} />
+          <rect x="9" y="6" width="1" height="1.2" fill={accent} />
+          {/* número 10 en el pecho */}
+          <rect x="4.8" y="7.4" width="0.7" height="1.8" fill="#2a4bc4" />
+          <rect x="6.1" y="7.4" width="1.2" height="1.8" fill="none" stroke="#2a4bc4" strokeWidth="0.5" />
+        </>
+      )}
 
       {/* ===== brazos ===== */}
       <rect x="1" y="7" width="1" height="3" fill={skin} />
@@ -126,6 +139,16 @@ export function PixelPerson({
         <>
           <rect x="10.2" y="7.2" width="1.9" height="2.5" fill="#2a2a3a" />
           <rect x="10.5" y="7.5" width="1.3" height="1.6" fill="#66f28a" />
+        </>
+      )}
+      {hold === "ball" && (
+        <>
+          {/* balón de fútbol junto al pie */}
+          <circle cx="11" cy="12.6" r="1.5" fill="#ffffff" stroke="#222" strokeWidth="0.3" />
+          <rect x="10.5" y="12.1" width="1" height="1" fill="#222" />
+          <rect x="9.8" y="12.9" width="0.6" height="0.6" fill="#222" />
+          <rect x="11.6" y="13.1" width="0.6" height="0.6" fill="#222" />
+          <rect x="11.4" y="11.4" width="0.6" height="0.6" fill="#222" />
         </>
       )}
 
@@ -211,17 +234,17 @@ export function PixelPerson({
   );
 }
 
-/** Config visual de Jarvis: bata clara, headset y tablet — el coordinador. */
+/** Config visual de Jarvis: camiseta de Ecuador 🇪🇨, headset y su balón. */
 export const JARVIS_SPRITE: PersonConfig = {
   hair: "#e8e8e8",
   skin: "#f0c8a0",
-  shirt: "#f5f0e8",
-  pants: "#8a7a5a",
+  shirt: "#ffd94a", // amarillo tricolor
+  pants: "#2a4bc4", // azul
   hairStyle: "einstein",
-  outfit: "coat",
-  outfitAccent: "#d8d2c0",
+  outfit: "jersey",
+  outfitAccent: "#e04040", // rojo del cuello y mangas
   accessory: "headset",
-  hold: "tablet",
+  hold: "ball",
 };
 
 function StateIndicator({ state }: { state: AgentState }) {
@@ -252,8 +275,8 @@ function StateIndicator({ state }: { state: AgentState }) {
 }
 
 /** Jarvis: personaje principal, destacado con glow y headset. */
-export default function JarvisCharacter({ state, x, y }: Props) {
-  const moving = state === "running";
+export default function JarvisCharacter({ state, x, y, walking }: Props) {
+  const moving = state === "running" || !!walking;
   return (
     <div
       className="absolute character-move z-30 flex flex-col items-center"

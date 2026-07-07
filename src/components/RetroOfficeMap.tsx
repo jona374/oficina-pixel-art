@@ -1,6 +1,14 @@
+"use client";
+
 import type { AgentStatus, ModuleId } from "@/types/agent";
 import FloatingLabel from "./FloatingLabel";
 import JarvisCharacter, { PixelPerson, type PersonConfig } from "./JarvisCharacter";
+import {
+  useOfficeLife,
+  type TilePos,
+  type WandererConfig,
+  type WandererState,
+} from "@/hooks/useOfficeLife";
 
 /* El mapa se modela en una cuadrícula de 20x14 "tiles" convertidos a
  * porcentajes. La sala está inset sobre un fondo oscuro, como un mapa
@@ -125,6 +133,42 @@ const STATIONS: StationDef[] = [
 
 const JARVIS_DESK = { tx: 4.0, ty: 7.4 };
 const JARVIS_HOME = { tx: 4.2, ty: 8.35 };
+
+/* ===== Vida de la oficina: paseos por puntos de interés =====
+ * Las rutas son líneas rectas, así que cada POI está elegido para que
+ * el camino desde el escritorio no cruce muebles. */
+const NPC_POIS: Record<string, TilePos[]> = {
+  memory: [
+    { tx: 1.9, ty: 2.55 }, // archivero
+    { tx: 1.9, ty: 5.4 }, // librero
+  ],
+  status: [{ tx: 10.2, ty: 1.95 }], // dispensador de agua
+  openclaw: [{ tx: 16.5, ty: 2.9 }], // rack de servidores
+  browser: [
+    { tx: 16.8, ty: 7.6 }, // reloj / planta de su sala
+    { tx: 13.3, ty: 10.6 }, // alfombra junto a su escritorio
+  ],
+  tools: [{ tx: 6.6, ty: 11.3 }], // mesita del café
+};
+
+const npcHome = (s: StationDef): TilePos => ({
+  tx: s.desk.tx + 0.6,
+  ty: s.desk.ty - 1.85,
+});
+
+const JARVIS_PATROL: WandererConfig[] = [
+  {
+    id: "jarvis",
+    home: JARVIS_HOME,
+    pois: [
+      { tx: 8.0, ty: 6.5 }, // pasillo central
+      { tx: 3.6, ty: 10.5 }, // sofá
+      { tx: 10.0, ty: 6.5 }, // puerta de las salas derechas
+    ],
+    minRest: 8000,
+    maxRest: 17000,
+  },
+];
 
 function jarvisPosition(status: AgentStatus): { x: number; y: number } {
   const spot =
@@ -615,28 +659,41 @@ function Rug({ color, border }: { color: string; border: string }) {
 function ModuleStation({
   station,
   isActive,
+  life,
 }: {
   station: StationDef;
   isActive: boolean;
+  life?: WandererState;
 }) {
   const { desk, npc, name, color, id, idleAnim, activity, activityDelay, screen } = station;
   const wide = id === "openclaw";
+  // Si su módulo está activo, el NPC vuelve a su puesto de inmediato.
+  const home = npcHome(station);
+  const away = !isActive && !!life?.away;
+  const pos = away && life ? life.pos : home;
+  const walking = away && !!life?.walking;
   return (
     <>
       <div
-        className="absolute z-20 flex flex-col items-center"
-        style={{ left: `${px(desk.tx + 0.6)}%`, top: `${py(desk.ty - 1.85)}%`, width: "5.5%" }}
+        className="absolute z-20 flex flex-col items-center character-move"
+        style={{ left: `${px(pos.tx)}%`, top: `${py(pos.ty)}%`, width: "5.5%" }}
       >
-        {/* burbuja de actividad: cuenta qué está haciendo (sobre la etiqueta) */}
-        <div
-          className="anim-activity absolute -top-5 right-0 w-[40%] aspect-square bg-white/95 border border-black/30 rounded-[2px] p-[2px] z-10"
-          style={{ animationDelay: `${activityDelay}s` }}
-        >
-          <ActivityIcon kind={activity} />
-        </div>
+        {/* burbuja de actividad: solo cuando está en su puesto */}
+        {!away && (
+          <div
+            className="anim-activity absolute -top-5 right-0 w-[40%] aspect-square bg-white/95 border border-black/30 rounded-[2px] p-[2px] z-10"
+            style={{ animationDelay: `${activityDelay}s` }}
+          >
+            <ActivityIcon kind={activity} />
+          </div>
+        )}
         <FloatingLabel name={name} color={color} blinking={isActive} />
         {npc && (
-          <div className={`relative w-[72%] aspect-[12/14] mt-0.5 ${isActive ? "anim-walk" : idleAnim}`}>
+          <div
+            className={`relative w-[72%] aspect-[12/14] mt-0.5 ${
+              isActive || walking ? "anim-walk" : idleAnim
+            }`}
+          >
             <div className="sprite-shadow" />
             <PixelPerson {...npc} />
           </div>
@@ -654,9 +711,24 @@ function ModuleStation({
 
 /* ===== Mapa principal ===== */
 
+const NPC_LIFE: WandererConfig[] = STATIONS.map((s) => ({
+  id: s.id,
+  home: npcHome(s),
+  pois: NPC_POIS[s.id] ?? [],
+}));
+
 export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
-  const jarvis = jarvisPosition(status);
   const R = ROOM;
+
+  // Vida de la oficina: NPCs pasean cuando hay conexión; Jarvis patrulla en idle.
+  const npcLife = useOfficeLife(NPC_LIFE, status.state !== "disconnected");
+  const patrol = useOfficeLife(JARVIS_PATROL, status.state === "idle");
+  const stroll = patrol["jarvis"];
+  const strolling = status.state === "idle" && !!stroll?.away;
+  const jarvis = strolling
+    ? { x: px(stroll.pos.tx), y: py(stroll.pos.ty) }
+    : jarvisPosition(status);
+  const jarvisWalking = strolling && !!stroll?.walking;
 
   return (
     <div
@@ -828,11 +900,17 @@ export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
           key={s.id}
           station={s}
           isActive={status.state === "running" && status.activeModule === s.id}
+          life={npcLife[s.id]}
         />
       ))}
 
       {/* Jarvis */}
-      <JarvisCharacter state={status.state} x={jarvis.x} y={jarvis.y} />
+      <JarvisCharacter
+        state={status.state}
+        x={jarvis.x}
+        y={jarvis.y}
+        walking={jarvisWalking}
+      />
 
       {/* viñeta + LED */}
       <div className="map-vignette" />
