@@ -22,7 +22,7 @@ export default function Home() {
       {/* sin scanlines sobre la pantalla principal: el mapa debe verse nítido */}
       <header className="max-w-7xl mx-auto flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-5 aspect-[16/20]">
+          <div className="w-4 aspect-[20/32]">
             <JarvisSprite />
           </div>
           <h1 className="panel-title text-[11px] text-glow">

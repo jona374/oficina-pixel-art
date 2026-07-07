@@ -25,6 +25,16 @@ export type AnimDef = {
 
 export type AnimSet = Record<AnimState, AnimDef>;
 
+/** Timings de Jarvis: idle respirando lento, walk con paso marcado.
+ *  (dialogue/special/attack apuntan a idle: reservados para el futuro) */
+export const JARVIS_ANIMATIONS: AnimSet = {
+  idle: { frames: 4, fps: 3, loop: true },
+  walk: { frames: 4, fps: 8, loop: true },
+  dialogue: { frames: 4, fps: 3, loop: true },
+  special: { frames: 4, fps: 3, loop: true },
+  attack: { frames: 4, fps: 3, loop: false, next: "idle" },
+};
+
 /** Timings de la monja/sacerdotisa (Oracle).
  *  - idle lento (respiración), walk al doble para pasos fluidos,
  *  - dialogue intermedio, special ceremonial, attack rápido. */
