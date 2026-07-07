@@ -247,6 +247,92 @@ export const JARVIS_SPRITE: PersonConfig = {
   hold: "ball",
 };
 
+/* Paleta del sprite grande de Jarvis */
+const OUT = "#2b2b3c"; // contorno
+const HAIR = "#ececf2";
+const HAIR_SH = "#c9c9d6";
+const SKIN2 = "#f2c99e";
+const YEL = "#ffd83d";
+const YEL_SH = "#e8b81f";
+const RED = "#e04040";
+const BLU = "#2a4bc4";
+
+/**
+ * Sprite principal de Jarvis en alta definición pixel (16x20):
+ * coordenadas enteras (sin antialiasing), contorno oscuro para
+ * separarlo del piso y detalles legibles — camiseta de Ecuador con
+ * el 10, headset con micrófono y su balón.
+ */
+export function JarvisSprite() {
+  return (
+    <svg
+      viewBox="0 0 16 20"
+      className="w-full h-full pixelated"
+      style={{ overflow: "visible" }}
+      aria-hidden
+    >
+      {/* ===== cabeza ===== */}
+      {/* contorno */}
+      <rect x="2" y="0" width="12" height="8" fill={OUT} />
+      {/* pelo blanco alborotado */}
+      <rect x="3" y="1" width="10" height="3" fill={HAIR} />
+      <rect x="3" y="3" width="10" height="1" fill={HAIR_SH} />
+      <rect x="1" y="2" width="1" height="2" fill={HAIR} />
+      <rect x="14" y="2" width="1" height="2" fill={HAIR} />
+      <rect x="4" y="-1" width="2" height="1" fill={HAIR} />
+      <rect x="10" y="-1" width="2" height="1" fill={HAIR} />
+      {/* cara */}
+      <rect x="3" y="4" width="10" height="3" fill={SKIN2} />
+      <rect x="5" y="5" width="1" height="1" fill="#232330" />
+      <rect x="10" y="5" width="1" height="1" fill="#232330" />
+      <rect x="7" y="6" width="2" height="1" fill="#d89a6a" />
+      {/* headset: banda + auriculares + micrófono */}
+      <rect x="3" y="0" width="10" height="1" fill="#3a3a52" />
+      <rect x="2" y="4" width="1" height="3" fill="#3a3a52" />
+      <rect x="13" y="4" width="1" height="3" fill="#3a3a52" />
+      <rect x="12" y="7" width="2" height="1" fill="#3a3a52" />
+      <rect x="11" y="7" width="1" height="1" fill="#66f28a" />
+
+      {/* ===== torso: camiseta de Ecuador ===== */}
+      <rect x="3" y="8" width="10" height="7" fill={OUT} />
+      <rect x="4" y="9" width="8" height="5" fill={YEL} />
+      <rect x="4" y="13" width="8" height="1" fill={YEL_SH} />
+      {/* cuello rojo */}
+      <rect x="6" y="9" width="4" height="1" fill={RED} />
+      {/* número 10 azul */}
+      <rect x="5" y="10" width="1" height="3" fill={BLU} />
+      <rect x="8" y="10" width="3" height="1" fill={BLU} />
+      <rect x="8" y="12" width="3" height="1" fill={BLU} />
+      <rect x="8" y="10" width="1" height="3" fill={BLU} />
+      <rect x="10" y="10" width="1" height="3" fill={BLU} />
+      {/* mangas rojas + brazos */}
+      <rect x="1" y="9" width="2" height="2" fill={RED} />
+      <rect x="13" y="9" width="2" height="2" fill={RED} />
+      <rect x="1" y="11" width="2" height="3" fill={SKIN2} />
+      <rect x="13" y="11" width="2" height="3" fill={SKIN2} />
+
+      {/* ===== short azul ===== */}
+      <rect x="3" y="15" width="10" height="2" fill={OUT} />
+      <rect x="4" y="15" width="8" height="2" fill={BLU} />
+      {/* piernas + medias amarillas */}
+      <rect x="4" y="17" width="2" height="1" fill={SKIN2} />
+      <rect x="10" y="17" width="2" height="1" fill={SKIN2} />
+      <rect x="4" y="18" width="2" height="1" fill={YEL} />
+      <rect x="10" y="18" width="2" height="1" fill={YEL} />
+      {/* zapatos */}
+      <rect x="3" y="19" width="3" height="1" fill={OUT} />
+      <rect x="10" y="19" width="3" height="1" fill={OUT} />
+
+      {/* ===== balón ===== */}
+      <circle cx="15" cy="18" r="2" fill="#ffffff" stroke={OUT} strokeWidth="0.5" />
+      <rect x="14" y="17" width="1.5" height="1.5" fill={OUT} />
+      <rect x="13.2" y="18.6" width="0.8" height="0.8" fill={OUT} />
+      <rect x="15.8" y="19" width="0.8" height="0.8" fill={OUT} />
+      <rect x="15.6" y="16.2" width="0.8" height="0.8" fill={OUT} />
+    </svg>
+  );
+}
+
 function StateIndicator({ state }: { state: AgentState }) {
   if (state === "thinking") {
     return (
@@ -280,7 +366,7 @@ export default function JarvisCharacter({ state, x, y, walking }: Props) {
   return (
     <div
       className="absolute character-move z-30 flex flex-col items-center"
-      style={{ left: `${x}%`, top: `${y}%`, width: "5.8%" }}
+      style={{ left: `${x}%`, top: `${y}%`, width: "7.2%" }}
     >
       <div className="h-4 mb-0.5 flex items-end">
         <StateIndicator state={state} />
@@ -290,12 +376,10 @@ export default function JarvisCharacter({ state, x, y, walking }: Props) {
         color={STATE_COLOR[state]}
         blinking={state === "running" || state === "thinking"}
       />
-      <div
-        className={`relative w-full aspect-[12/14] mt-0.5 ${moving ? "anim-walk" : "anim-bob"}`}
-        style={{ filter: "drop-shadow(0 0 4px rgba(126, 231, 135, 0.55))" }}
-      >
+      {/* sin filtros ni glow: sprite nítido con contorno propio */}
+      <div className={`relative w-full aspect-[16/20] mt-0.5 ${moving ? "anim-walk" : "anim-bob"}`}>
         <div className="sprite-shadow" />
-        <PixelPerson {...JARVIS_SPRITE} />
+        <JarvisSprite />
       </div>
     </div>
   );

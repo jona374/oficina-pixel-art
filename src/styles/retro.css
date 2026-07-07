@@ -1,5 +1,7 @@
 /* ===== Estética retro / CRT ===== */
 
+/* Marco del mapa: borde de juego moderno, SIN scanlines ni sombra
+ * interior fuerte — el pixel-art debe verse limpio y nítido. */
 .crt-frame {
   position: relative;
   border: 10px solid #1c1c26;
@@ -7,24 +9,8 @@
   box-shadow:
     0 0 0 3px #33334a,
     0 0 40px rgba(110, 90, 158, 0.25),
-    inset 0 0 24px rgba(0, 0, 0, 0.55);
+    inset 0 0 8px rgba(0, 0, 0, 0.25);
   overflow: hidden;
-}
-
-/* Scanlines sutiles sobre el mapa */
-.crt-frame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.07) 0px,
-    rgba(0, 0, 0, 0.07) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  z-index: 40;
 }
 
 .pixelated {
@@ -175,12 +161,12 @@
   pointer-events: none;
 }
 
-/* Viñeta suave sobre el mapa */
+/* Viñeta mínima: solo un toque en los bordes, nunca sobre personajes */
 .map-vignette {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(10, 10, 20, 0.35) 100%);
+  background: radial-gradient(ellipse at center, transparent 78%, rgba(10, 10, 20, 0.10) 100%);
   z-index: 38;
 }
 

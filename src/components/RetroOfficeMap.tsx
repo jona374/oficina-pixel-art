@@ -929,7 +929,7 @@ export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
         return (
           <div
             className="absolute z-20 flex flex-col items-center character-move"
-            style={{ left: `${px(pos.tx)}%`, top: `${py(pos.ty)}%`, width: "5.5%" }}
+            style={{ left: `${px(pos.tx)}%`, top: `${py(pos.ty)}%`, width: "6.4%" }}
           >
             <FloatingLabel
               name="Oracle"

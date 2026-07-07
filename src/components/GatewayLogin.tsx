@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useGatewayAuth } from "@/hooks/useGatewayAuth";
-import { PixelPerson } from "./JarvisCharacter";
+import { JarvisSprite } from "./JarvisCharacter";
 
 const BOOT_LINES = [
   { text: "[ OK ] núcleo openclaw cargado", delay: 0 },
@@ -42,9 +42,9 @@ export default function GatewayLogin({ onAuthenticated }: { onAuthenticated: () 
             {/* avatar con halo */}
             <div className="relative w-16 h-16 mx-auto mb-4">
               <div className="avatar-halo absolute -inset-3" />
-              <div className="relative w-12 aspect-[12/14] mx-auto anim-bob">
+              <div className="relative w-12 aspect-[16/20] mx-auto anim-bob">
                 <div className="sprite-shadow" />
-                <PixelPerson hair="#e8e8e8" skin="#f0c8a0" shirt="#f5f0e8" pants="#8a7a5a" />
+                <JarvisSprite />
               </div>
             </div>
 

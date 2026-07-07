@@ -10,41 +10,43 @@ import { useCharacterAnimation } from "@/hooks/useCharacterAnimation";
    dobladillo dorado). Animada por frames, no por CSS.
    ============================================================ */
 
-const BLACK = "#23233a";
-const BLACK_DARK = "#16162a";
-const GOLD = "#d8b040";
-const SKIN = "#f0c8a0";
-const WHITE = "#f4f0e4";
+const BLACK = "#2e2e48";
+const BLACK_DARK = "#1c1c30";
+const OUTLINE = "#12121f";
+const GOLD = "#e0b846";
+const SKIN = "#f2c99e";
+const WHITE = "#f6f2e6";
 
-/* Parámetros por frame de cada secuencia (unidades del viewBox 12x16) */
-const IDLE_BREATH = [0, 0.25, 0.5, 0.25]; // dy del torso
+/* Parámetros por frame (unidades enteras del viewBox 14x18 para
+ * mantener el sprite nítido, sin antialiasing) */
+const IDLE_BREATH = [0, 0, 1, 0]; // dy del torso (px enteros, sutil)
 const WALK_FRAMES = [
-  { hem: -0.5, bob: 0.0, lf: -0.6, rf: 0.6 }, // paso izquierdo
-  { hem: 0.0, bob: -0.35, lf: 0.0, rf: 0.0 }, // juntos (impulso)
-  { hem: 0.5, bob: 0.0, lf: 0.6, rf: -0.6 }, // paso derecho
-  { hem: 0.0, bob: -0.35, lf: 0.0, rf: 0.0 },
+  { hem: -1, bob: 0, lf: -1, rf: 1 }, // paso izquierdo
+  { hem: 0, bob: -1, lf: 0, rf: 0 }, // juntos (impulso)
+  { hem: 1, bob: 0, lf: 1, rf: -1 }, // paso derecho
+  { hem: 0, bob: -1, lf: 0, rf: 0 },
 ];
 const DIALOG_FRAMES = [
-  { handY: 7.6, tilt: 0 },
-  { handY: 7.0, tilt: -3 },
-  { handY: 7.3, tilt: 2 },
-  { handY: 7.6, tilt: 0 },
+  { handY: 9, tilt: 0 },
+  { handY: 8, tilt: -3 },
+  { handY: 8, tilt: 2 },
+  { handY: 9, tilt: 0 },
 ];
 
 export function NunSprite({ state, frame }: { state: AnimState; frame: number }) {
-  const breath = state === "idle" ? IDLE_BREATH[frame % IDLE_BREATH.length] : 0;
+  const breath = state === "idle" ? IDLE_BREATH[frame % IDLE_BREATH.length] * 0.5 : 0;
   const walk = state === "walk" ? WALK_FRAMES[frame % WALK_FRAMES.length] : null;
   const dialog = state === "dialogue" ? DIALOG_FRAMES[frame % DIALOG_FRAMES.length] : null;
   // progreso 0..1 de las secuencias ceremoniales
   const sp = state === "special" ? frame / (NUN_ANIMATIONS.special.frames - 1) : 0;
   const atk = state === "attack" ? frame / (NUN_ANIMATIONS.attack.frames - 1) : 0;
 
-  const bob = walk ? walk.bob : 0;
-  const hem = walk ? walk.hem : 0;
+  const bob = walk ? walk.bob * 0.5 : 0;
+  const hem = walk ? walk.hem * 0.5 : 0;
 
   return (
     <svg
-      viewBox="0 0 12 16"
+      viewBox="0 0 14 18"
       className="w-full h-full pixelated"
       style={{ overflow: "visible" }}
       aria-hidden
@@ -52,76 +54,77 @@ export function NunSprite({ state, frame }: { state: AnimState; frame: number })
       {/* aura del ritual (special): crece con la secuencia */}
       {state === "special" && sp > 0.15 && (
         <>
-          <circle cx="6" cy="0" r={sp * 1.7} fill="#f6e28a" opacity={0.35 + sp * 0.3} />
-          <circle cx="6" cy="0" r={sp * 0.9} fill="#fff2b0" opacity={0.8} />
+          <circle cx="7" cy="0" r={sp * 2.2} fill="#f6e28a" opacity={0.4 + sp * 0.3} />
+          <circle cx="7" cy="0" r={sp * 1.1} fill="#fff2b0" opacity={0.9} />
           {sp > 0.7 && (
             <>
-              <rect x="2.6" y="-0.8" width="0.6" height="0.6" fill="#f6e28a" />
-              <rect x="9" y="-0.4" width="0.6" height="0.6" fill="#f6e28a" />
+              <rect x="3" y="-1" width="1" height="1" fill="#f6e28a" />
+              <rect x="10" y="0" width="1" height="1" fill="#f6e28a" />
             </>
           )}
         </>
       )}
 
       {/* pies (asoman bajo el hábito al caminar) */}
-      <rect x={4 + (walk?.lf ?? 0)} y="14.5" width="1.3" height="1.1" fill={BLACK_DARK} />
-      <rect x={6.7 + (walk?.rf ?? 0)} y="14.5" width="1.3" height="1.1" fill={BLACK_DARK} />
+      <rect x={4 + (walk?.lf ?? 0)} y="16" width="2" height="2" fill={OUTLINE} />
+      <rect x={8 + (walk?.rf ?? 0)} y="16" width="2" height="2" fill={OUTLINE} />
 
       {/* hábito: falda acampanada con dobladillo dorado (se mece al andar) */}
       <g transform={`translate(${hem} ${bob})`}>
-        <rect x="2.6" y="9.5" width="6.8" height="4.6" fill={BLACK} />
-        <rect x="3.1" y="9.5" width="5.8" height="4.6" fill={BLACK_DARK} />
-        <rect x="2.6" y="13.6" width="6.8" height="0.9" fill={GOLD} />
+        <rect x="2" y="10" width="10" height="7" fill={OUTLINE} />
+        <rect x="3" y="10" width="8" height="6" fill={BLACK} />
+        <rect x="4" y="10" width="6" height="6" fill={BLACK_DARK} />
+        <rect x="3" y="15" width="8" height="1" fill={GOLD} />
       </g>
 
       {/* torso (respira en idle) */}
       <g transform={`translate(0 ${breath + bob})`}>
-        <rect x="3.2" y="5.2" width="5.6" height="4.6" fill={BLACK} />
-        <rect x="3.7" y="5.2" width="4.6" height="4.6" fill={BLACK_DARK} />
+        <rect x="3" y="6" width="8" height="5" fill={OUTLINE} />
+        <rect x="4" y="6" width="6" height="5" fill={BLACK} />
+        <rect x="5" y="6" width="4" height="5" fill={BLACK_DARK} />
         {/* cíngulo dorado */}
-        <rect x="4.3" y="8.4" width="3.4" height="0.5" fill={GOLD} />
+        <rect x="5" y="9" width="4" height="1" fill={GOLD} />
 
         {/* manos según el estado */}
         {state === "special" ? (
           // ritual: ambas manos elevadas, suben con la secuencia
           <>
-            <rect x="2.4" y={6.2 - sp * 2.2} width="1.2" height="1.1" fill={SKIN} />
-            <rect x="8.4" y={6.2 - sp * 2.2} width="1.2" height="1.1" fill={SKIN} />
+            <rect x="2" y={7 - sp * 3} width="2" height="1" fill={SKIN} />
+            <rect x="10" y={7 - sp * 3} width="2" height="1" fill={SKIN} />
           </>
         ) : state === "attack" ? (
           // bendición proyectada: el brazo se extiende y sale el destello
           <>
-            <rect x={8.4 + atk * 2.6} y="7.2" width="1.3" height="1.1" fill={SKIN} />
-            {atk > 0.6 && (
-              <circle cx={10.6 + atk * 2.2} cy="7.7" r={0.7} fill="#ffe066" />
-            )}
-            <rect x="4.9" y="8.7" width="1.4" height="1" fill={SKIN} />
+            <rect x={10 + atk * 3} y="8" width="2" height="1" fill={SKIN} />
+            {atk > 0.6 && <circle cx={13 + atk * 2.5} cy="8.5" r={0.9} fill="#ffe066" />}
+            <rect x="5" y="10" width="2" height="1" fill={SKIN} />
           </>
         ) : dialog ? (
           // diálogo: una mano gesticula, la otra queda recogida
           <>
-            <rect x="8.5" y={dialog.handY} width="1.3" height="1.1" fill={SKIN} />
-            <rect x="4.9" y="8.7" width="1.4" height="1" fill={SKIN} />
+            <rect x="10" y={dialog.handY} width="2" height="1" fill={SKIN} />
+            <rect x="5" y="10" width="2" height="1" fill={SKIN} />
           </>
         ) : (
           // idle/walk: manos recogidas al frente
-          <rect x="4.9" y="8.7" width="2.2" height="1.1" fill={SKIN} />
+          <rect x="5" y="10" width="4" height="1" fill={SKIN} />
         )}
 
         {/* cabeza con velo y cofia (ligera inclinación al dialogar) */}
-        <g transform={dialog ? `rotate(${dialog.tilt} 6 3)` : undefined}>
-          {/* velo negro que cae a los lados */}
-          <rect x="2.4" y="0.6" width="1.3" height="7.4" fill={BLACK} />
-          <rect x="8.3" y="0.6" width="1.3" height="7.4" fill={BLACK} />
-          <rect x="2.4" y="0" width="7.2" height="2.2" fill={BLACK} />
+        <g transform={dialog ? `rotate(${dialog.tilt} 7 3)` : undefined}>
+          {/* contorno + velo negro que cae a los lados */}
+          <rect x="2" y="0" width="10" height="7" fill={OUTLINE} />
+          <rect x="3" y="1" width="8" height="2" fill={BLACK} />
+          <rect x="3" y="1" width="1" height="6" fill={BLACK} />
+          <rect x="10" y="1" width="1" height="6" fill={BLACK} />
           {/* cofia blanca */}
-          <rect x="3.6" y="1" width="4.8" height="3.6" fill={WHITE} />
+          <rect x="4" y="1" width="6" height="5" fill={WHITE} />
           {/* rostro */}
-          <rect x="4.1" y="1.7" width="3.8" height="2.6" fill={SKIN} />
-          <rect x="4.8" y="2.6" width="0.7" height="0.7" fill="#222" />
-          <rect x="6.5" y="2.6" width="0.7" height="0.7" fill="#222" />
-          {/* borde superior del velo */}
-          <rect x="2.4" y="0" width="7.2" height="0.7" fill={BLACK_DARK} />
+          <rect x="5" y="2" width="4" height="4" fill={SKIN} />
+          <rect x="5" y="3" width="1" height="1" fill="#232330" />
+          <rect x="8" y="3" width="1" height="1" fill="#232330" />
+          {/* velo sobre la frente */}
+          <rect x="3" y="0" width="8" height="1" fill={BLACK} />
         </g>
       </g>
     </svg>
@@ -178,7 +181,7 @@ export default function NunCharacter({ walking, away, agentThinking }: OraclePro
   const { state, frame } = useCharacterAnimation(NUN_ANIMATIONS, requested);
 
   return (
-    <div className="relative w-[78%] aspect-[12/16] mt-0.5">
+    <div className="relative w-[92%] aspect-[14/18] mt-0.5">
       <div className="sprite-shadow" />
       <NunSprite state={state} frame={frame} />
     </div>

@@ -6,7 +6,7 @@ import RetroOfficeMap from "@/components/RetroOfficeMap";
 import CommandConsole from "@/components/CommandConsole";
 import StatusPanel from "@/components/StatusPanel";
 import TaskPanel from "@/components/TaskPanel";
-import { PixelPerson } from "@/components/JarvisCharacter";
+import { JarvisSprite } from "@/components/JarvisCharacter";
 import { useAgentStatus } from "@/hooks/useAgentStatus";
 
 export default function Home() {
@@ -19,12 +19,11 @@ export default function Home() {
 
   return (
     <main className="min-h-screen p-3 lg:p-6">
-      <div className="screen-scanlines" />
-
+      {/* sin scanlines sobre la pantalla principal: el mapa debe verse nítido */}
       <header className="max-w-7xl mx-auto flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-5 aspect-[12/14]">
-            <PixelPerson hair="#e8e8e8" skin="#f0c8a0" shirt="#f5f0e8" pants="#8a7a5a" />
+          <div className="w-5 aspect-[16/20]">
+            <JarvisSprite />
           </div>
           <h1 className="panel-title text-[11px] text-glow">
             JARVIS · OPENCLAW
