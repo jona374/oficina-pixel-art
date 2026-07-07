@@ -1,6 +1,6 @@
 import type { AgentStatus, ModuleId } from "@/types/agent";
 import FloatingLabel from "./FloatingLabel";
-import JarvisCharacter, { PixelPerson } from "./JarvisCharacter";
+import JarvisCharacter, { PixelPerson, type PersonConfig } from "./JarvisCharacter";
 
 /* El mapa se modela en una cuadrícula de 20x14 "tiles" convertidos a
  * porcentajes. La sala está inset sobre un fondo oscuro, como un mapa
@@ -17,54 +17,108 @@ const TOP_WALL = 1.0; // pared superior más gruesa (cuelgan ventanas/cuadros)
 const DIV_X = 12.6; // división vertical de las salas derechas
 const DIV_Y = 6.6; // división horizontal entre OpenClaw y Browser
 
+type ScreenKind = "plain" | "bars" | "window" | "code" | "files";
+type ActivityKind = "folder" | "bars" | "wrench" | "search" | "core";
+
 type StationDef = {
   id: ModuleId;
   name: string;
   color: string;
   desk: { tx: number; ty: number };
-  npc?: { hair: string; skin: string; shirt: string; pants: string };
+  npc?: PersonConfig;
+  /** Animación idle propia del rol (la oficina se siente viva). */
+  idleAnim: string;
+  /** Icono de la burbuja de actividad que aparece cada pocos segundos. */
+  activity: ActivityKind;
+  activityDelay: number;
+  /** Contenido del monitor de la estación. */
+  screen: ScreenKind;
   jarvisSpot: { tx: number; ty: number };
 };
 
 const STATIONS: StationDef[] = [
   {
+    // El bibliotecario de datos: lentes, chaleco y carpeta en mano.
     id: "memory",
     name: "Memory",
     color: "#f6c85f",
     desk: { tx: 2.5, ty: 3.9 },
-    npc: { hair: "#5a3b1e", skin: "#e8b088", shirt: "#e0b060", pants: "#4a4a5a" },
+    npc: {
+      hair: "#5a3b1e", skin: "#e8b088", shirt: "#e0b060", pants: "#4a4a5a",
+      hairStyle: "short", outfit: "vest", outfitAccent: "#a8823c",
+      accessory: "glasses", hold: "folder",
+    },
+    idleAnim: "anim-sort",
+    activity: "folder",
+    activityDelay: 0,
+    screen: "files",
     jarvisSpot: { tx: 5.0, ty: 4.7 },
   },
   {
+    // El vigilante: pelo de punta, tablet con métricas, mira el monitor.
     id: "status",
     name: "Status",
     color: "#62ff8e",
     desk: { tx: 7.6, ty: 3.6 },
-    npc: { hair: "#222222", skin: "#c88a5a", shirt: "#5bc46a", pants: "#3a3a4a" },
+    npc: {
+      hair: "#222222", skin: "#c88a5a", shirt: "#5bc46a", pants: "#3a3a4a",
+      hairStyle: "spiky", hold: "tablet",
+    },
+    idleAnim: "anim-scan",
+    activity: "bars",
+    activityDelay: 1.6,
+    screen: "bars",
     jarvisSpot: { tx: 10.1, ty: 4.4 },
   },
   {
+    // El operador del núcleo: traje, gafete y porte premium.
     id: "openclaw",
     name: "OpenClaw",
     color: "#b088e0",
     desk: { tx: 14.4, ty: 3.2 },
-    npc: { hair: "#2a2a2a", skin: "#f0c8a0", shirt: "#8a6ad0", pants: "#3a3a4a" },
+    npc: {
+      hair: "#1a1a24", skin: "#f0c8a0", shirt: "#8a6ad0", pants: "#2e2640",
+      hairStyle: "short", outfit: "suit", outfitAccent: "#4a3f6e",
+      accessory: "badge",
+    },
+    idleAnim: "anim-command",
+    activity: "core",
+    activityDelay: 3.2,
+    screen: "code",
     jarvisSpot: { tx: 13.7, ty: 4.4 },
   },
   {
+    // La investigadora: coleta, sudadera con capucha y notas en mano.
     id: "browser",
     name: "Browser",
     color: "#60a5e0",
     desk: { tx: 14.4, ty: 8.8 },
-    npc: { hair: "#8a4a2a", skin: "#e8b088", shirt: "#4a8ac8", pants: "#4a4a5a" },
+    npc: {
+      hair: "#8a4a2a", skin: "#e8b088", shirt: "#4a8ac8", pants: "#4a4a5a",
+      hairStyle: "ponytail", outfit: "hoodie", outfitAccent: "#2f6ea6",
+      hold: "paper",
+    },
+    idleAnim: "anim-read",
+    activity: "search",
+    activityDelay: 4.8,
+    screen: "window",
     jarvisSpot: { tx: 13.7, ty: 9.9 },
   },
   {
+    // El técnico: gorra, overol y llave inglesa — siempre ajustando algo.
     id: "tools",
     name: "Tools",
     color: "#e08a60",
     desk: { tx: 7.6, ty: 10.0 },
-    npc: { hair: "#c8a030", skin: "#f0c8a0", shirt: "#d87a50", pants: "#3a3a4a" },
+    npc: {
+      hair: "#c8a030", skin: "#f0c8a0", shirt: "#f0e0c8", pants: "#3a3a4a",
+      hairStyle: "cap", capColor: "#d87a50", outfit: "overalls",
+      outfitAccent: "#b05a3a", hold: "wrench",
+    },
+    idleAnim: "anim-tinker",
+    activity: "wrench",
+    activityDelay: 6.4,
+    screen: "plain",
     jarvisSpot: { tx: 10.1, ty: 10.8 },
   },
 ];
@@ -82,8 +136,59 @@ function jarvisPosition(status: AgentStatus): { x: number; y: number } {
 
 /* ===== Muebles pixel-art (SVG inline) ===== */
 
+/** Contenido del monitor según la estación (storytelling). */
+function ScreenContent({ kind }: { kind: ScreenKind }) {
+  switch (kind) {
+    case "bars":
+      return (
+        <>
+          <rect x="7.6" y="3.6" width="1.1" height="1.6" fill="#66f28a" />
+          <rect x="9.1" y="2.6" width="1.1" height="2.6" fill="#f6c85f" />
+          <rect x="10.6" y="1.9" width="1.1" height="3.3" fill="#66f28a" />
+          <rect x="12.1" y="3.0" width="1.1" height="2.2" fill="#60a5e0" />
+        </>
+      );
+    case "window":
+      return (
+        <>
+          <rect x="7.5" y="1.5" width="5.5" height="3.6" fill="#dce8f4" />
+          <rect x="7.5" y="1.5" width="5.5" height="0.9" fill="#60a5e0" />
+          <rect x="8" y="2.9" width="4" height="0.5" fill="#9ab0c8" />
+          <rect x="8" y="3.8" width="3" height="0.5" fill="#9ab0c8" />
+        </>
+      );
+    case "code":
+      return (
+        <>
+          <rect x="7.6" y="1.7" width="3.4" height="0.6" fill="#b088e0" />
+          <rect x="7.6" y="2.7" width="4.6" height="0.6" fill="#66f28a" />
+          <rect x="8.4" y="3.7" width="3.2" height="0.6" fill="#66f28a" />
+          <rect x="7.6" y="4.7" width="2.4" height="0.6" fill="#b088e0" />
+        </>
+      );
+    case "files":
+      return (
+        <>
+          <rect x="7.8" y="2.0" width="2.2" height="1.6" fill="#f6c85f" />
+          <rect x="10.6" y="2.0" width="2.2" height="1.6" fill="#f6c85f" />
+          <rect x="7.8" y="4.0" width="2.2" height="1.2" fill="#e0a83c" />
+        </>
+      );
+    default:
+      return <rect x="7.8" y="2" width="4" height="0.8" fill="#4a6078" />;
+  }
+}
+
 /** Escritorio con computadora retro beige, torre, teclado, taza y libro. */
-function Desk({ active, wide }: { active?: boolean; wide?: boolean }) {
+function Desk({
+  active,
+  wide,
+  screen = "plain",
+}: {
+  active?: boolean;
+  wide?: boolean;
+  screen?: ScreenKind;
+}) {
   return (
     <svg viewBox={wide ? "0 0 28 15" : "0 0 24 15"} className="w-full h-full pixelated" aria-hidden>
       {/* torre */}
@@ -94,8 +199,11 @@ function Desk({ active, wide }: { active?: boolean; wide?: boolean }) {
       {/* monitor retro */}
       <rect x="6" y="0" width="8.5" height="7" fill="#e3ddc9" />
       <rect x="7" y="1" width="6.5" height="4.5" fill={active ? "var(--monitor-glow)" : "var(--monitor-dark)"} className={active ? "anim-screen" : undefined} />
-      {active && <rect x="7.8" y="2" width="3" height="1" fill="#14532d" />}
-      {!active && <rect x="7.8" y="2" width="4" height="0.8" fill="#4a6078" />}
+      {active ? (
+        <rect x="7.8" y="2" width="3" height="1" fill="#14532d" />
+      ) : (
+        <ScreenContent kind={screen} />
+      )}
       <rect x="9" y="7" width="2.5" height="0.8" fill="#c9c2ab" />
       {/* tablero */}
       <rect x="0" y="8" width={wide ? 28 : 24} height="3.4" fill="var(--wood-main)" />
@@ -313,6 +421,95 @@ function Bench() {
   );
 }
 
+/** Caja de herramientas roja junto a la estación Tools. */
+function Toolbox() {
+  return (
+    <svg viewBox="0 0 10 7" className="w-full h-full pixelated" aria-hidden>
+      <rect x="0.5" y="2" width="9" height="4.5" fill="#c0392b" />
+      <rect x="0.5" y="2" width="9" height="1" fill="#e05a4a" />
+      <rect x="3.5" y="0.6" width="3" height="1.6" fill="none" stroke="#8a2a20" strokeWidth="0.7" />
+      <rect x="4.2" y="3.4" width="1.6" height="1.2" fill="#f6c85f" />
+    </svg>
+  );
+}
+
+/** Pila de carpetas junto a Memory. */
+function FolderStack() {
+  return (
+    <svg viewBox="0 0 9 7" className="w-full h-full pixelated" aria-hidden>
+      <rect x="0.5" y="4.5" width="8" height="2" fill="#e0a83c" />
+      <rect x="1" y="2.6" width="7" height="2" fill="#f6c85f" />
+      <rect x="1.5" y="0.8" width="6" height="1.9" fill="#ffe08a" />
+      <rect x="1.5" y="0.8" width="2" height="0.7" fill="#e0a83c" />
+    </svg>
+  );
+}
+
+/** Rack de servidores del despacho OpenClaw, con LEDs parpadeando. */
+function ServerRack() {
+  return (
+    <svg viewBox="0 0 10 18" className="w-full h-full pixelated" aria-hidden>
+      <rect x="0" y="0" width="10" height="18" fill="#2a2a3a" />
+      <rect x="1" y="1" width="8" height="4" fill="#3a3a50" />
+      <rect x="1" y="6" width="8" height="4" fill="#3a3a50" />
+      <rect x="1" y="11" width="8" height="4" fill="#3a3a50" />
+      <rect x="2" y="2" width="1.2" height="1.2" fill="#66f28a" className="anim-blink" />
+      <rect x="4" y="2" width="1.2" height="1.2" fill="#b088e0" />
+      <rect x="2" y="7" width="1.2" height="1.2" fill="#f6c85f" className="anim-blink" />
+      <rect x="4" y="7" width="1.2" height="1.2" fill="#66f28a" />
+      <rect x="2" y="12" width="1.2" height="1.2" fill="#66f28a" className="anim-blink" />
+      <rect x="6" y="2.4" width="2.4" height="0.5" fill="#5a5a72" />
+      <rect x="6" y="7.4" width="2.4" height="0.5" fill="#5a5a72" />
+      <rect x="6" y="12.4" width="2.4" height="0.5" fill="#5a5a72" />
+      <rect x="0" y="16" width="10" height="2" fill="#1e1e2c" />
+    </svg>
+  );
+}
+
+/** Icono de la burbuja de actividad. */
+function ActivityIcon({ kind }: { kind: ActivityKind }) {
+  switch (kind) {
+    case "folder":
+      return (
+        <svg viewBox="0 0 8 8" className="w-full h-full pixelated" aria-hidden>
+          <rect x="0.5" y="2" width="7" height="5" fill="#f6c85f" />
+          <rect x="0.5" y="1" width="3" height="1.6" fill="#e0a83c" />
+        </svg>
+      );
+    case "bars":
+      return (
+        <svg viewBox="0 0 8 8" className="w-full h-full pixelated" aria-hidden>
+          <rect x="0.5" y="4" width="1.8" height="3.5" fill="#66f28a" />
+          <rect x="3" y="2" width="1.8" height="5.5" fill="#f6c85f" />
+          <rect x="5.5" y="0.5" width="1.8" height="7" fill="#66f28a" />
+        </svg>
+      );
+    case "wrench":
+      return (
+        <svg viewBox="0 0 8 8" className="w-full h-full pixelated" aria-hidden>
+          <rect x="3.2" y="1.5" width="1.6" height="6" fill="#9aa2b8" />
+          <rect x="2" y="0.5" width="4" height="1.8" fill="#9aa2b8" />
+          <rect x="3.2" y="0.8" width="1.6" height="1" fill="#3a3a4a" />
+        </svg>
+      );
+    case "search":
+      return (
+        <svg viewBox="0 0 8 8" className="w-full h-full pixelated" aria-hidden>
+          <circle cx="3.2" cy="3.2" r="2.4" fill="none" stroke="#60a5e0" strokeWidth="1.1" />
+          <rect x="5" y="5" width="2.4" height="1.2" fill="#60a5e0" transform="rotate(45 5 5)" />
+        </svg>
+      );
+    case "core":
+      return (
+        <svg viewBox="0 0 8 8" className="w-full h-full pixelated" aria-hidden>
+          <rect x="0.5" y="0.5" width="7" height="7" fill="#2a2a3a" />
+          <rect x="1.5" y="2" width="2" height="1.2" fill="#b088e0" />
+          <rect x="1.5" y="4.4" width="4" height="1.2" fill="#66f28a" />
+        </svg>
+      );
+  }
+}
+
 function CheckerMat() {
   return (
     <svg viewBox="0 0 14 8" className="w-full h-full pixelated" aria-hidden>
@@ -422,7 +619,7 @@ function ModuleStation({
   station: StationDef;
   isActive: boolean;
 }) {
-  const { desk, npc, name, color, id } = station;
+  const { desk, npc, name, color, id, idleAnim, activity, activityDelay, screen } = station;
   const wide = id === "openclaw";
   return (
     <>
@@ -430,16 +627,23 @@ function ModuleStation({
         className="absolute z-20 flex flex-col items-center"
         style={{ left: `${px(desk.tx + 0.6)}%`, top: `${py(desk.ty - 1.85)}%`, width: "5.5%" }}
       >
+        {/* burbuja de actividad: cuenta qué está haciendo (sobre la etiqueta) */}
+        <div
+          className="anim-activity absolute -top-5 right-0 w-[40%] aspect-square bg-white/95 border border-black/30 rounded-[2px] p-[2px] z-10"
+          style={{ animationDelay: `${activityDelay}s` }}
+        >
+          <ActivityIcon kind={activity} />
+        </div>
         <FloatingLabel name={name} color={color} blinking={isActive} />
         {npc && (
-          <div className={`relative w-[72%] aspect-[12/14] mt-0.5 ${isActive ? "anim-walk" : ""}`}>
+          <div className={`relative w-[72%] aspect-[12/14] mt-0.5 ${isActive ? "anim-walk" : idleAnim}`}>
             <div className="sprite-shadow" />
             <PixelPerson {...npc} />
           </div>
         )}
       </div>
       <Deco tx={desk.tx} ty={desk.ty} tw={wide ? 3.1 : 2.7} th={1.75} z={15}>
-        <Desk active={isActive} wide={wide} />
+        <Desk active={isActive} wide={wide} screen={screen} />
       </Deco>
       <Deco tx={desk.tx + 1.0} ty={desk.ty + 1.78} tw={0.72} th={0.72} z={6}>
         <Stool />
@@ -587,6 +791,16 @@ export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
       {/* impresora junto a la cafetería */}
       <Deco tx={8.9} ty={10.9} tw={1.5} th={1.3} z={6}>
         <Printer />
+      </Deco>
+      {/* props narrativos por estación */}
+      <Deco tx={10.45} ty={10.55} tw={0.85} th={0.62} z={6}>
+        <Toolbox />
+      </Deco>
+      <Deco tx={5.35} ty={4.35} tw={0.75} th={0.6} z={16}>
+        <FolderStack />
+      </Deco>
+      <Deco tx={17.5} ty={2.3} tw={0.95} th={1.85} z={6}>
+        <ServerRack />
       </Deco>
       {/* bancas del borde inferior */}
       <Deco tx={1.6} ty={12.15} tw={2.2} th={0.66} z={11}>

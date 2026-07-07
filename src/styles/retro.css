@@ -110,6 +110,54 @@
   transform-origin: 50% 90%;
 }
 
+/* ===== Micro-animaciones idle por rol (sutiles) ===== */
+
+/* Memory: clasifica carpetas — balanceo lento y ordenado */
+@keyframes idle-sort {
+  0%, 40%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-2.5deg); }
+  70% { transform: rotate(2deg); }
+}
+.anim-sort { animation: idle-sort 3.6s ease-in-out infinite; transform-origin: 50% 85%; }
+
+/* Status: vigila el monitor — se inclina hacia la pantalla a ratos */
+@keyframes idle-scan {
+  0%, 55%, 100% { transform: rotate(0deg) translateY(0); }
+  65%, 85% { transform: rotate(4deg) translateY(0.5px); }
+}
+.anim-scan { animation: idle-scan 4.8s ease-in-out infinite; transform-origin: 50% 90%; }
+
+/* Tools: ajusta y repara — movimiento corto y constante */
+@keyframes idle-tinker {
+  0%, 100% { transform: rotate(-2.5deg) translateY(0); }
+  50% { transform: rotate(2.5deg) translateY(1px); }
+}
+.anim-tinker { animation: idle-tinker 1.15s ease-in-out infinite; transform-origin: 50% 90%; }
+
+/* Browser: lee e investiga — asiente suavemente */
+@keyframes idle-read {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-0.8px); }
+  60% { transform: translateY(0.6px); }
+}
+.anim-read { animation: idle-read 2.6s ease-in-out infinite; }
+
+/* OpenClaw: opera el núcleo — respiración lenta y segura */
+@keyframes idle-command {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1.5px) scale(1.015); }
+}
+.anim-command { animation: idle-command 3.2s ease-in-out infinite; }
+
+/* Burbuja de actividad: aparece unos segundos y desaparece */
+@keyframes activity-pop {
+  0%, 72%, 100% { opacity: 0; transform: translateY(3px) scale(0.6); }
+  76%, 94% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.anim-activity {
+  animation: activity-pop 8s ease-in-out infinite;
+}
+
 /* Parpadeo suave de pantallas activas */
 @keyframes screen-flicker {
   0%, 100% { opacity: 1; }
