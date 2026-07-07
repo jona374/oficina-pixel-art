@@ -9,6 +9,7 @@ import {
   type WandererConfig,
   type WandererState,
 } from "@/hooks/useOfficeLife";
+import NunCharacter from "./NunCharacter";
 
 /* El mapa se modela en una cuadrícula de 20x14 "tiles" convertidos a
  * porcentajes. La sala está inset sobre un fondo oscuro, como un mapa
@@ -155,6 +156,20 @@ const npcHome = (s: StationDef): TilePos => ({
   tx: s.desk.tx + 0.6,
   ty: s.desk.ty - 1.85,
 });
+
+/* La Oracle vive junto a la puerta de las salas derechas y visita
+ * la entrada y la planta del fondo. */
+const ORACLE_HOME: TilePos = { tx: 11.4, ty: 7.4 };
+const ORACLE_LIFE: WandererConfig = {
+  id: "oracle",
+  home: ORACLE_HOME,
+  pois: [
+    { tx: 14.5, ty: 11.3 }, // tapete de la entrada (cruza por la puerta)
+    { tx: 11.0, ty: 11.1 }, // planta del fondo
+  ],
+  minRest: 12000,
+  maxRest: 26000,
+};
 
 const JARVIS_PATROL: WandererConfig[] = [
   {
@@ -711,11 +726,14 @@ function ModuleStation({
 
 /* ===== Mapa principal ===== */
 
-const NPC_LIFE: WandererConfig[] = STATIONS.map((s) => ({
-  id: s.id,
-  home: npcHome(s),
-  pois: NPC_POIS[s.id] ?? [],
-}));
+const NPC_LIFE: WandererConfig[] = [
+  ...STATIONS.map((s) => ({
+    id: s.id,
+    home: npcHome(s),
+    pois: NPC_POIS[s.id] ?? [],
+  })),
+  ORACLE_LIFE,
+];
 
 export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
   const R = ROOM;
@@ -903,6 +921,29 @@ export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
           life={npcLife[s.id]}
         />
       ))}
+
+      {/* Oracle: la sacerdotisa del sistema (animada por frames) */}
+      {(() => {
+        const life = npcLife["oracle"];
+        const pos = life?.pos ?? ORACLE_HOME;
+        return (
+          <div
+            className="absolute z-20 flex flex-col items-center character-move"
+            style={{ left: `${px(pos.tx)}%`, top: `${py(pos.ty)}%`, width: "5.5%" }}
+          >
+            <FloatingLabel
+              name="Oracle"
+              color="#c9a0ff"
+              blinking={status.state === "thinking"}
+            />
+            <NunCharacter
+              walking={life?.walking}
+              away={life?.away}
+              agentThinking={status.state === "thinking"}
+            />
+          </div>
+        );
+      })()}
 
       {/* Jarvis */}
       <JarvisCharacter
