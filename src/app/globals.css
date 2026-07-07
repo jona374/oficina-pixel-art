@@ -2,19 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   DESIGN SYSTEM — JARVIS · OPENCLAW
+   Tokens globales: colores, estados, tipografía, glow.
+   ============================================================ */
 :root {
-  /* Sin dependencia de fuentes externas: stack mono con sabor retro. */
-  --font-pixel: "Courier New", ui-monospace, "Cascadia Mono", Menlo, monospace;
+  /* --- fondos (de más profundo a más elevado) --- */
+  --bg-void: #08080f;
+  --bg-deep: #0d0d16;
+  --bg-panel: #13131f;
+  --bg-panel-hi: #191926;
+  --bg-inset: rgba(0, 0, 0, 0.45);
+
+  /* --- bordes --- */
+  --border-dim: #23233a;
+  --border-mid: #32324e;
+  --border-hi: #4a4a6e;
+
+  /* --- acentos --- */
+  --green: #7ee787;
+  --green-dim: #3fa15a;
+  --green-glow: rgba(126, 231, 135, 0.45);
+  --purple: #b088e0;
+  --purple-dim: #6e5a9e;
+  --purple-glow: rgba(176, 136, 224, 0.35);
+  --amber: #e0b060;
+  --red: #e06060;
+  --blue: #60a5e0;
+
+  /* --- texto --- */
+  --text-hi: #e8e8f2;
+  --text-mid: #9a9ab4;
+  --text-low: #565672;
+
+  /* --- estados del agente --- */
+  --state-idle: var(--green);
+  --state-thinking: var(--amber);
+  --state-running: var(--blue);
+  --state-error: var(--red);
+  --state-done: var(--green);
+  --state-off: #70708a;
+
+  /* --- tipografía (next/font inyecta --font-title y --font-terminal) --- */
+  --font-pixel: var(--font-title, "Courier New"), "Courier New", ui-monospace, monospace;
+  --font-term: var(--font-terminal, "Courier New"), "Courier New", ui-monospace, monospace;
 }
 
 body {
-  background-color: #0d0d14;
+  background-color: var(--bg-void);
   background-image:
-    radial-gradient(ellipse 80% 55% at 50% -5%, rgba(110, 90, 158, 0.22), transparent),
-    radial-gradient(ellipse 60% 40% at 85% 105%, rgba(63, 161, 90, 0.10), transparent);
+    radial-gradient(ellipse 80% 55% at 50% -5%, rgba(110, 90, 158, 0.20), transparent),
+    radial-gradient(ellipse 60% 40% at 85% 105%, rgba(63, 161, 90, 0.09), transparent);
   background-attachment: fixed;
-  color: #e0e0e0;
+  color: var(--text-hi);
   font-family: var(--font-pixel);
-  font-weight: 700;
   letter-spacing: 0.02em;
 }

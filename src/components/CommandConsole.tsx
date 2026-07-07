@@ -39,12 +39,12 @@ export default function CommandConsole({ logs }: { logs: CommandLog[] }) {
   };
 
   return (
-    <section className="flex flex-col bg-crt-panel border-2 border-crt-border h-full min-h-0">
-      <header className="flex items-center justify-between px-3 py-1.5 border-b-2 border-crt-border">
-        <h2 className="text-[10px] text-crt-green tracking-widest">▸ CONSOLA</h2>
+    <section className="retro-panel retro-corners flex flex-col h-full min-h-0">
+      <header className="flex items-center justify-between px-4 py-2 border-b border-[var(--border-dim)]">
+        <h2 className="panel-title">▸ CONSOLA</h2>
         <button
           onClick={clearConsole}
-          className="text-[9px] px-2 py-0.5 border border-crt-border text-gray-400 hover:text-crt-green hover:border-crt-green transition-colors"
+          className="btn-retro text-[8px] px-2.5 py-1"
         >
           LIMPIAR
         </button>
@@ -52,34 +52,36 @@ export default function CommandConsole({ logs }: { logs: CommandLog[] }) {
 
       <div
         ref={scrollRef}
-        className="console-scroll flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-2 text-[11px] leading-relaxed"
+        className="console-scroll flex-1 min-h-0 overflow-y-auto px-4 py-2 space-y-2 font-term text-[16px] leading-snug"
         onClick={() => inputRef.current?.focus()}
       >
         {logs.length === 0 && (
-          <p className="text-gray-500">
-            Escribe <span className="text-crt-green">help</span> para ver los
+          <p className="text-[var(--text-low)]">
+            Escribe <span className="text-[var(--green)]">help</span> para ver los
             comandos disponibles.
           </p>
         )}
         {logs.map((log) => (
           <div key={log.id}>
             {log.command && (
-              <p className="text-gray-400">
-                <span className="text-crt-purple">jarvis@openclaw</span>
-                <span className="text-gray-600">:~$ </span>
-                <span className="text-white">{log.command}</span>
+              <p className="text-[var(--text-mid)]">
+                <span className="text-[var(--purple)]">jarvis@openclaw</span>
+                <span className="text-[var(--text-low)]">:~$ </span>
+                <span className="text-[var(--text-hi)]">{log.command}</span>
               </p>
             )}
-            <pre className={`whitespace-pre-wrap font-pixel ${TYPE_COLOR[log.type]}`}>
+            <pre className={`whitespace-pre-wrap font-term ${TYPE_COLOR[log.type]}`}>
               {log.response}
             </pre>
           </div>
         ))}
-        {busy && <p className="text-crt-amber anim-blink">Jarvis está pensando…</p>}
+        {busy && (
+          <p className="text-[var(--amber)] anim-blink">Jarvis está pensando…</p>
+        )}
       </div>
 
-      <div className="flex items-center gap-2 px-3 py-2 border-t-2 border-crt-border">
-        <span className="text-crt-purple text-[11px] shrink-0">$</span>
+      <div className="flex items-center gap-2 px-4 py-2 border-t border-[var(--border-dim)] bg-[var(--bg-inset)]">
+        <span className="text-[var(--purple)] font-term text-[16px] shrink-0">$</span>
         <input
           ref={inputRef}
           value={input}
@@ -87,7 +89,7 @@ export default function CommandConsole({ logs }: { logs: CommandLog[] }) {
           onKeyDown={onKeyDown}
           disabled={busy}
           placeholder={busy ? "ejecutando…" : "status | run task <texto> | help"}
-          className="flex-1 bg-transparent text-[11px] text-crt-green placeholder-gray-600 outline-none font-pixel"
+          className="flex-1 bg-transparent font-term text-[16px] text-[var(--green)] placeholder-[var(--text-low)] outline-none caret-[var(--green)]"
           autoFocus
           spellCheck={false}
         />

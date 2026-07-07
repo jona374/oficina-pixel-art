@@ -35,9 +35,9 @@ function formatElapsed(ms: number): string {
 export default function StatusPanel({ status }: { status: AgentStatus }) {
   const state = STATE_STYLE[status.state];
   return (
-    <section className="bg-crt-panel border-2 border-crt-border p-3 space-y-2.5">
-      <header className="flex items-center justify-between">
-        <h2 className="text-[10px] text-crt-green tracking-widest">▸ ESTADO</h2>
+    <section className="retro-panel retro-corners p-4 space-y-2.5">
+      <header className="flex items-center justify-between border-b border-[var(--border-dim)] pb-2 mb-1">
+        <h2 className="panel-title">▸ ESTADO</h2>
         <span
           className="text-[9px] px-2 py-0.5 border anim-blink"
           style={{ color: state.color, borderColor: state.color }}

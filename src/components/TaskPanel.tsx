@@ -2,8 +2,8 @@ import type { TaskInfo } from "@/types/agent";
 
 export default function TaskPanel({ task }: { task: TaskInfo | null }) {
   return (
-    <section className="bg-crt-panel border-2 border-crt-border p-3 space-y-2.5">
-      <h2 className="text-[10px] text-crt-green tracking-widest">▸ TAREAS</h2>
+    <section className="retro-panel retro-corners p-4 space-y-2.5">
+      <h2 className="panel-title border-b border-[var(--border-dim)] pb-2">▸ TAREAS</h2>
 
       {!task ? (
         <p className="text-[10px] text-gray-500">

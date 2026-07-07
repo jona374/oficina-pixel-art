@@ -4,6 +4,13 @@ import { useState } from "react";
 import { useGatewayAuth } from "@/hooks/useGatewayAuth";
 import { PixelPerson } from "./JarvisCharacter";
 
+const BOOT_LINES = [
+  { text: "[ OK ] núcleo openclaw cargado", delay: 0 },
+  { text: "[ OK ] renderizador pixel-office listo", delay: 0.25 },
+  { text: "[ OK ] módulos: memory · tools · browser · status", delay: 0.5 },
+  { text: "[ .. ] esperando gateway token", delay: 0.75 },
+];
+
 export default function GatewayLogin({ onAuthenticated }: { onAuthenticated: () => void }) {
   const { authState, login } = useGatewayAuth();
   const [token, setToken] = useState("");
@@ -17,57 +24,76 @@ export default function GatewayLogin({ onAuthenticated }: { onAuthenticated: () 
   const validating = authState === "validating";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-crt-bg p-4">
-      <div className="crt-frame bg-crt-panel w-full max-w-md p-8">
-        <div className="text-center mb-8 space-y-2">
-          <div className="relative w-12 aspect-[12/14] mx-auto anim-bob">
-            <div className="sprite-shadow" />
-            <PixelPerson hair="#e8e8e8" skin="#f0c8a0" shirt="#f5f0e8" pants="#8a7a5a" />
-          </div>
-          <pre className="text-crt-green text-[10px] leading-tight inline-block text-left">
-{` ┌─────────────────────────┐
- │  JARVIS · OPENCLAW  v0.1 │
- └─────────────────────────┘`}
-          </pre>
-          <p className="text-[10px] text-gray-500">
-            Centro de operaciones — acceso restringido
-          </p>
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="screen-scanlines" />
+
+      <div className="w-full max-w-md">
+        {/* secuencia de arranque */}
+        <div className="mb-4 space-y-1 font-term text-[15px] leading-tight text-[var(--text-low)]">
+          {BOOT_LINES.map((l) => (
+            <p key={l.text} className="boot-line" style={{ animationDelay: `${l.delay}s` }}>
+              {l.text}
+            </p>
+          ))}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <label className="block space-y-2">
-            <span className="text-[10px] text-crt-green tracking-widest">
-              ▸ GATEWAY TOKEN
-            </span>
-            <input
-              type="password"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="••••••••"
-              disabled={validating}
-              className="w-full bg-black/50 border-2 border-crt-border px-3 py-2 text-[12px] text-crt-green placeholder-gray-700 outline-none focus:border-crt-green font-pixel"
-              autoFocus
-            />
-          </label>
+        <div className="retro-panel retro-corners p-8">
+          <div className="text-center mb-8">
+            {/* avatar con halo */}
+            <div className="relative w-16 h-16 mx-auto mb-4">
+              <div className="avatar-halo absolute -inset-3" />
+              <div className="relative w-12 aspect-[12/14] mx-auto anim-bob">
+                <div className="sprite-shadow" />
+                <PixelPerson hair="#e8e8e8" skin="#f0c8a0" shirt="#f5f0e8" pants="#8a7a5a" />
+              </div>
+            </div>
 
-          {authState === "invalid" && (
-            <p className="text-[10px] text-crt-red anim-error">
-              ✗ Token inválido. Debe tener al menos 4 caracteres.
+            <h1 className="panel-title text-[13px] text-glow mb-2">
+              JARVIS · OPENCLAW
+            </h1>
+            <p className="text-[9px] tracking-[0.2em] text-[var(--text-low)] uppercase">
+              Centro de operaciones — v0.1
             </p>
-          )}
+          </div>
 
-          <button
-            type="submit"
-            disabled={validating || token.length === 0}
-            className="w-full py-2 border-2 border-crt-green text-crt-green text-[11px] tracking-widest hover:bg-crt-green hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {validating ? "VALIDANDO…" : "CONECTAR"}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <label className="block space-y-2">
+              <span className="text-[8px] tracking-[0.2em] text-[var(--green)]">
+                ▸ GATEWAY TOKEN
+              </span>
+              <div className="flex items-center gap-2 bg-[var(--bg-inset)] border border-[var(--border-mid)] px-3 focus-within:border-[var(--green-dim)] focus-within:shadow-[0_0_12px_var(--green-glow)] transition-shadow">
+                <span className="text-[var(--green-dim)] text-[11px]">$</span>
+                <input
+                  type="password"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  placeholder="••••••••"
+                  disabled={validating}
+                  className="w-full bg-transparent py-2.5 font-term text-[17px] text-[var(--green)] placeholder-[var(--text-low)] outline-none caret-[var(--green)]"
+                  autoFocus
+                />
+              </div>
+            </label>
 
-        <p className="mt-6 text-[9px] text-gray-600 text-center">
-          Modo demo: cualquier token de 4+ caracteres es válido.
-        </p>
+            {authState === "invalid" && (
+              <p className="text-[9px] text-[var(--red)] anim-error tracking-wide">
+                ✗ TOKEN INVÁLIDO — mínimo 4 caracteres
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={validating || token.length === 0}
+              className="btn-retro w-full py-3 text-[10px]"
+            >
+              {validating ? "► VALIDANDO…" : "► CONECTAR"}
+            </button>
+          </form>
+
+          <p className="mt-6 text-[8px] tracking-wider text-[var(--text-low)] text-center">
+            MODO DEMO · CUALQUIER TOKEN DE 4+ CARACTERES
+          </p>
+        </div>
       </div>
     </div>
   );

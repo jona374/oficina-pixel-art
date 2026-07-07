@@ -24,6 +24,7 @@ const config: Config = {
       },
       fontFamily: {
         pixel: ["var(--font-pixel)", "'Courier New'", "monospace"],
+        term: ["var(--font-term)", "'Courier New'", "monospace"],
       },
     },
   },
