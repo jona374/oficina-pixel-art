@@ -2,39 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { FREE_KNIGHT_CONFIG, type KnightAnimName } from "./config";
-
-/**
- * Avatar animado por spritesheet PNG (no GIF): reproduce el frame
- * actual moviendo background-position sobre la hoja. El stepping por
- * porcentaje hace que escale a cualquier tamaño sin deformarse, y
- * `image-rendering: pixelated` mantiene el pixel-art nítido.
- */
-function SheetSprite({
-  anim,
-  frame,
-  facing,
-}: {
-  anim: KnightAnimName;
-  frame: number;
-  facing: "left" | "right";
-}) {
-  const def = FREE_KNIGHT_CONFIG.animations[anim];
-  const step = def.frames > 1 ? (frame * 100) / (def.frames - 1) : 0;
-  return (
-    <div
-      className="w-full h-full pixelated"
-      style={{
-        backgroundImage: `url(${FREE_KNIGHT_CONFIG.basePath}/${def.file})`,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: `${def.frames * 100}% 100%`,
-        backgroundPosition: `${step}% 0`,
-        imageRendering: "pixelated",
-        // El pack solo mira a la derecha: invertimos para mirar a la izquierda.
-        transform: facing === "left" ? "scaleX(-1)" : undefined,
-      }}
-    />
-  );
-}
+import FreeKnightSprite from "./FreeKnightSprite";
 
 type Props = {
   /** true mientras se desplaza por la oficina. */
@@ -43,42 +11,67 @@ type Props = {
   facing?: "left" | "right";
 };
 
-/** Free Knight: primer avatar de spritesheet integrado a la oficina. */
+/**
+ * Controlador de animación del Free Knight: máquina de estados
+ * idle / walk / turn. Cuando cambia la dirección reproduce TurnAround
+ * una vez y luego continúa (walk o idle). El frame avanza con
+ * (frame+1) % frames, así el ciclo nunca se congela.
+ */
 export default function FreeKnightCharacter({ walking, facing = "right" }: Props) {
-  const anim: KnightAnimName = walking ? "run" : "idle";
+  const [anim, setAnim] = useState<KnightAnimName>("idle");
   const [frame, setFrame] = useState(0);
+  const prevFacing = useRef(facing);
+  const turningUntil = useRef(0);
 
+  // Detecta el cambio de dirección → dispara TurnAround.
+  useEffect(() => {
+    if (facing !== prevFacing.current) {
+      prevFacing.current = facing;
+      const turn = FREE_KNIGHT_CONFIG.animations.turn;
+      turningUntil.current = Date.now() + (turn.frames / turn.fps) * 1000;
+      setAnim("turn");
+    }
+  }, [facing]);
+
+  // Estado base según movimiento (respeta el turn en curso).
+  useEffect(() => {
+    if (Date.now() < turningUntil.current) return;
+    setAnim(walking ? "walk" : "idle");
+  }, [walking]);
+
+  // Reproductor de frames del estado actual.
   useEffect(() => {
     const def = FREE_KNIGHT_CONFIG.animations[anim];
     let f = 0;
     setFrame(0);
     const id = setInterval(() => {
-      f = (f + 1) % def.frames; // ciclo continuo, nunca se congela
-      setFrame(f);
+      f += 1;
+      if (f >= def.frames) {
+        if (def.loop) {
+          f = 0;
+          setFrame(0);
+        } else {
+          clearInterval(id);
+          // al terminar el turn, retoma walk/idle
+          setAnim(walking ? "walk" : "idle");
+        }
+      } else {
+        setFrame(f);
+      }
     }, 1000 / def.fps);
     return () => clearInterval(id);
-  }, [anim]);
+    // walking en deps para que al terminar el turn tome el estado correcto
+  }, [anim, walking]);
 
-  return (
-    <div
-      className="relative w-full"
-      style={{
-        aspectRatio: `${FREE_KNIGHT_CONFIG.frameWidth}/${FREE_KNIGHT_CONFIG.frameHeight}`,
-      }}
-    >
-      {/* sombra bajo los pies (el frame trae márgenes anchos) */}
-      <div className="sprite-shadow" style={{ left: "34%", width: "32%" }} />
-      <SheetSprite anim={anim} frame={frame} facing={facing} />
-    </div>
-  );
+  return <FreeKnightSprite anim={anim} frame={frame} facing={facing} />;
 }
 
 /** Deriva la dirección de mirada a partir del movimiento horizontal. */
 export function useFacing(x: number): "left" | "right" {
   const prev = useRef(x);
   const facing = useRef<"left" | "right">("right");
-  if (x < prev.current) facing.current = "left";
-  else if (x > prev.current) facing.current = "right";
+  if (x < prev.current - 0.05) facing.current = "left";
+  else if (x > prev.current + 0.05) facing.current = "right";
   prev.current = x;
   return facing.current;
 }

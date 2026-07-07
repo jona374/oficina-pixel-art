@@ -1,12 +1,16 @@
 /**
  * Configuración del avatar Free Knight (pack FreeKnight_v1).
- * Sheets usados: Colour1/Outline/120x80_PNGSheets (el outline se lee
- * mejor sobre el piso de la oficina). Las animaciones de combate del
- * pack (_Attack, _Death, _Hit, _Roll, _WallClimb…) quedan registradas
- * como NO usadas: no se copian ni se reproducen en la oficina.
+ * Sheets: Colour1/Outline/120x80_PNGSheets.
+ *
+ * El personaje visible ocupa solo ~30x39 px dentro de cada frame de
+ * 120x80 (medido: Idle x[44-64] y[42-79], Run x[41-70] y[41-79]),
+ * centrado en x≈57 con los pies en la base. Por eso definimos una
+ * VENTANA DE RECORTE que enfoca al personaje: así se ve grande y
+ * nítido sin tocar el asset. Los sprites de combate del pack quedan
+ * registrados pero NO se usan en la oficina.
  */
 
-export type KnightAnimName = "idle" | "run" | "turnAround" | "jump" | "fall";
+export type KnightAnimName = "idle" | "walk" | "turn" | "jump" | "fall";
 
 export type KnightAnimDef = {
   file: string;
@@ -15,12 +19,17 @@ export type KnightAnimDef = {
   loop: boolean;
 };
 
+/** Recorte del personaje dentro del frame (px). Centrado en x≈57 para
+ *  que el volteo horizontal no lo desplace. */
+export const KNIGHT_CROP = { x: 38, y: 38, w: 38, h: 42 };
+
 export const FREE_KNIGHT_CONFIG: {
   name: string;
   basePath: string;
   frameWidth: number;
   frameHeight: number;
-  /** Escala visual configurable (ancho en % del mapa). */
+  crop: { x: number; y: number; w: number; h: number };
+  /** Ancho del personaje recortado en % del mapa (ajústalo aquí). */
   mapWidthPct: number;
   defaultAnimation: KnightAnimName;
   animations: Record<KnightAnimName, KnightAnimDef>;
@@ -29,13 +38,15 @@ export const FREE_KNIGHT_CONFIG: {
   basePath: "/assets/characters/free-knight",
   frameWidth: 120,
   frameHeight: 80,
-  mapWidthPct: 13,
+  crop: KNIGHT_CROP,
+  // Con el recorte el personaje se ve ~3x mas grande a igual caja.
+  mapWidthPct: 7.5,
   defaultAnimation: "idle",
   animations: {
     idle: { file: "_Idle.png", frames: 10, fps: 8, loop: true },
-    // Run a 7fps: en una oficina camina, no corre.
-    run: { file: "_Run.png", frames: 10, fps: 7, loop: true },
-    turnAround: { file: "_TurnAround.png", frames: 3, fps: 8, loop: false },
+    // "Run" a 6fps: en una oficina camina, no corre.
+    walk: { file: "_Run.png", frames: 10, fps: 6, loop: true },
+    turn: { file: "_TurnAround.png", frames: 3, fps: 9, loop: false },
     jump: { file: "_Jump.png", frames: 3, fps: 8, loop: false },
     fall: { file: "_Fall.png", frames: 3, fps: 8, loop: false },
   },

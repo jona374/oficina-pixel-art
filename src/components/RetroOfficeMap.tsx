@@ -149,17 +149,20 @@ const ORACLE_LIFE: WandererConfig = {
   maxRest: 26000,
 };
 
-/* El Free Knight ronda la zona baja de la sala principal. */
-const KNIGHT_HOME: TilePos = { tx: 5.6, ty: 10.6 };
+/* El Free Knight ronda la zona baja de la sala principal.
+ * Los puntos son la posición de los PIES (piso transitable, sin
+ * muebles ni paredes). */
+const KNIGHT_HOME: TilePos = { tx: 6.7, ty: 11.4 };
 const KNIGHT_LIFE: WandererConfig = {
   id: "knight",
   home: KNIGHT_HOME,
   pois: [
-    { tx: 9.0, ty: 6.3 }, // pasillo central
-    { tx: 10.5, ty: 11.2 }, // junto a la impresora
+    { tx: 8.6, ty: 7.4 }, // pasillo central
+    { tx: 9.8, ty: 11.7 }, // junto a la impresora
+    { tx: 3.7, ty: 11.0 }, // zona del sofá
   ],
-  minRest: 10000,
-  maxRest: 22000,
+  minRest: 9000,
+  maxRest: 20000,
 };
 
 const JARVIS_PATROL: WandererConfig[] = [
@@ -713,21 +716,30 @@ function ModuleStation({
   );
 }
 
-/** Free Knight en el mapa: posición por vida de oficina + mirada según rumbo. */
+/** Free Knight en el mapa: sus PIES quedan anclados al piso en (pos)
+ *  mediante translate(-50%,-100%); al escalar no flota ni se hunde. */
 function KnightNPC({ life }: { life?: WandererState }) {
   const pos = life?.pos ?? KNIGHT_HOME;
   const facing = useFacing(pos.tx);
   return (
     <div
-      className="absolute z-20 flex flex-col items-center character-move"
+      className="absolute z-20 character-move"
       style={{
         left: `${px(pos.tx)}%`,
         top: `${py(pos.ty)}%`,
         width: `${FREE_KNIGHT_CONFIG.mapWidthPct}%`,
+        transform: "translate(-50%, -100%)",
+        transformOrigin: "bottom center",
       }}
     >
-      <FloatingLabel name="Knight" color="#9aa2b8" blinking={!!life?.walking} />
-      <FreeKnightCharacter walking={life?.walking} facing={facing} />
+      {/* etiqueta encima del casco, sin tapar el cuerpo */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-0.5 whitespace-nowrap">
+        <FloatingLabel name="Knight" color="#c9cede" blinking={!!life?.walking} />
+      </div>
+      <div className="relative">
+        <div className="sprite-shadow" style={{ left: "20%", width: "60%", bottom: "0px" }} />
+        <FreeKnightCharacter walking={life?.walking} facing={facing} />
+      </div>
     </div>
   );
 }
