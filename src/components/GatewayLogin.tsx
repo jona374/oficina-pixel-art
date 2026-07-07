@@ -42,7 +42,7 @@ export default function GatewayLogin({ onAuthenticated }: { onAuthenticated: () 
             {/* avatar con halo */}
             <div className="relative w-16 h-16 mx-auto mb-4">
               <div className="avatar-halo absolute -inset-3" />
-              <div className="relative w-10 aspect-[20/32] mx-auto anim-bob">
+              <div className="relative w-10 aspect-[22/34] mx-auto anim-bob">
                 <div className="sprite-shadow" />
                 <JarvisSprite />
               </div>

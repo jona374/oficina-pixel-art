@@ -4,6 +4,7 @@ import type { AgentState } from "@/types/agent";
 import FloatingLabel from "./FloatingLabel";
 import { JARVIS_ANIMATIONS } from "@/lib/characterAnimations";
 import { useCharacterAnimation } from "@/hooks/useCharacterAnimation";
+import { PixelGrid } from "./PixelSprite";
 
 type Props = {
   state: AgentState;
@@ -280,11 +281,57 @@ const J_WALK = [
   { bob: -0.5, la: 0, ra: 0, lf: -0.5, rf: -0.5 },
 ];
 
+/* Cuerpo de Jarvis por matriz (22 de ancho): melena orgánica con
+ * brillo, cara con boca, camiseta entallada con cuello en V y el 10,
+ * short con franjas. Brazos y piernas van como capas animadas. */
+const JARVIS_PALETTE: Record<string, string> = {
+  O: OUT,
+  H: HAIR,
+  I: HAIR_HI,
+  h: HAIR_SH,
+  S: SKIN2,
+  s: SKIN_SH,
+  K: DARKK,
+  Y: YEL,
+  y: YEL_SH,
+  R: RED,
+  B: BLU,
+  b: BLU_SH,
+};
+
+const JARVIS_BODY: string[] = [
+  ".....OOOOOOOOOOOO.....",
+  "....OHHHHHHHHHHHHO....",
+  "...OHHIIHHHHHHHHHHO...",
+  "..OHHHHHHHHHHHHHHHHO..",
+  "..OHHHHHHHHHHHHHHHHO..",
+  "..OHhHHHHHHHHHHHHhHO..",
+  "..OhhhhhhhhhhhhhhhhO..",
+  "..OsSSSSSSSSSSSSSSsO..",
+  "..OSSSKKSSSSSSKKSSSO..",
+  "..OSSSKKSSSSSSKKSSSO..",
+  "..OSSSSSSSssSSSSSSSO..",
+  "...OOSSSSSSSSSSSSOO...",
+  "....OOOOOOOOOOOOOO....",
+  "....OYYYYRRRRYYYYO....",
+  "....OYYYYYRRYYYYYO....",
+  "....OYYYYYYYYYYYyO....",
+  "....OYBYYYBBBYYYyO....",
+  "....OYBYYYBYBYYYyO....",
+  "....OYBYYYBBBYYYyO....",
+  "....OYYYYYYYYYYYyO....",
+  "....OYyYYYYYYYYyyO....",
+  "....OyyyyyyyyyyyyO....",
+  "....OYBBBBBBBBBBYO....",
+  "....OYBBBBBBBBBBYO....",
+  "....ObbBBBBBBBBbbO....",
+  "....OOOOOOOOOOOOOO....",
+];
+
 /**
- * Sprite principal de Jarvis (20x32, proporciones altas de sprite-sheet):
- * contorno completo, sombreado por material, camiseta de Ecuador con
- * el 10, headset con micrófono, medias y botines — animado por frames
- * (idle respira, walk alterna piernas y balancea los brazos).
+ * Sprite principal de Jarvis (22x34, silueta orgánica por matriz):
+ * animado por frames — idle respira, walk alterna piernas y balancea
+ * los brazos. El balón siempre va a su pie.
  */
 export function JarvisSprite({
   moving = false,
@@ -296,94 +343,59 @@ export function JarvisSprite({
   const f = moving ? J_WALK[frame % J_WALK.length] : J_IDLE[frame % J_IDLE.length];
   return (
     <svg
-      viewBox="0 0 20 32"
+      viewBox="0 0 22 34"
       className="w-full h-full pixelated"
       style={{ overflow: "visible" }}
       aria-hidden
     >
       {/* ===== piernas (alternan al caminar) ===== */}
       <g transform={`translate(0 ${f.lf})`}>
-        <rect x="5" y="26" width="4" height="6" fill={OUT} />
-        <rect x="6" y="26" width="2" height="1" fill={SKIN2} />
-        <rect x="6" y="27" width="2" height="1" fill={BLU} />
-        <rect x="6" y="28" width="2" height="2" fill={YEL} />
-        <rect x="5" y="30" width="4" height="2" fill={DARKK} />
+        <rect x="6" y="26" width="4" height="8" fill={OUT} />
+        <rect x="7" y="26" width="2" height="1" fill={SKIN2} />
+        <rect x="7" y="27" width="2" height="1" fill={BLU} />
+        <rect x="7" y="28" width="2" height="2" fill={YEL} />
+        <rect x="7" y="30" width="2" height="3" fill={DARKK} />
       </g>
       <g transform={`translate(0 ${f.rf})`}>
-        <rect x="11" y="26" width="4" height="6" fill={OUT} />
-        <rect x="12" y="26" width="2" height="1" fill={SKIN2} />
-        <rect x="12" y="27" width="2" height="1" fill={BLU} />
-        <rect x="12" y="28" width="2" height="2" fill={YEL} />
-        <rect x="11" y="30" width="4" height="2" fill={DARKK} />
+        <rect x="12" y="26" width="4" height="8" fill={OUT} />
+        <rect x="13" y="26" width="2" height="1" fill={SKIN2} />
+        <rect x="13" y="27" width="2" height="1" fill={BLU} />
+        <rect x="13" y="28" width="2" height="2" fill={YEL} />
+        <rect x="13" y="30" width="2" height="3" fill={DARKK} />
       </g>
 
       {/* ===== cuerpo (respira en idle) ===== */}
       <g transform={`translate(0 ${f.bob})`}>
-        {/* --- torso + short: silueta --- */}
-        <rect x="4" y="12" width="12" height="14" fill={OUT} />
-        {/* camiseta amarilla con sombra lateral y pliegue */}
-        <rect x="5" y="13" width="10" height="8" fill={YEL} />
-        <rect x="13" y="13" width="2" height="8" fill={YEL_SH} />
-        <rect x="6" y="19" width="7" height="1" fill={YEL_SH} />
-        {/* cuello rojo en V */}
-        <rect x="8" y="13" width="4" height="1" fill={RED} />
-        <rect x="9" y="14" width="2" height="1" fill={RED} />
-        {/* número 10 azul */}
-        <rect x="7" y="15" width="1" height="3" fill={BLU} />
-        <rect x="10" y="15" width="3" height="1" fill={BLU} />
-        <rect x="10" y="17" width="3" height="1" fill={BLU} />
-        <rect x="10" y="15" width="1" height="3" fill={BLU} />
-        <rect x="12" y="15" width="1" height="3" fill={BLU} />
-        {/* cinturilla + short azul con franja amarilla */}
-        <rect x="5" y="21" width="10" height="1" fill={YEL_SH} />
-        <rect x="5" y="22" width="10" height="3" fill={BLU} />
-        <rect x="5" y="22" width="1" height="3" fill={YEL} />
-        <rect x="14" y="22" width="1" height="3" fill={YEL} />
-        <rect x="5" y="24" width="10" height="1" fill={BLU_SH} />
-
-        {/* --- brazos (balancean al caminar) --- */}
+        {/* brazos detrás del torso (balancean al caminar) */}
         <g transform={`translate(0 ${f.la})`}>
-          <rect x="2" y="13" width="2" height="8" fill={OUT} />
-          <rect x="2.5" y="14" width="1" height="2" fill={RED} />
-          <rect x="2.5" y="16" width="1" height="3" fill={SKIN2} />
-          <rect x="2.5" y="19" width="1" height="1" fill={SKIN_SH} />
+          <rect x="1" y="13" width="4" height="10" fill={OUT} />
+          <rect x="2" y="14" width="2" height="3" fill={RED} />
+          <rect x="2" y="17" width="2" height="4" fill={SKIN2} />
+          <rect x="2" y="21" width="2" height="1" fill={SKIN_SH} />
         </g>
         <g transform={`translate(0 ${f.ra})`}>
-          <rect x="16" y="13" width="2" height="8" fill={OUT} />
-          <rect x="16.5" y="14" width="1" height="2" fill={RED} />
-          <rect x="16.5" y="16" width="1" height="3" fill={SKIN2} />
-          <rect x="16.5" y="19" width="1" height="1" fill={SKIN_SH} />
+          <rect x="17" y="13" width="4" height="10" fill={OUT} />
+          <rect x="18" y="14" width="2" height="3" fill={RED} />
+          <rect x="18" y="17" width="2" height="4" fill={SKIN2} />
+          <rect x="18" y="21" width="2" height="1" fill={SKIN_SH} />
         </g>
 
-        {/* --- cabeza --- */}
-        {/* silueta: melena + cara */}
-        <rect x="3" y="0" width="14" height="7" fill={OUT} />
-        <rect x="4" y="6" width="12" height="6" fill={OUT} />
-        {/* pelo blanco alborotado con brillo y sombra */}
-        <rect x="4" y="1" width="12" height="5" fill={HAIR} />
-        <rect x="5" y="2" width="4" height="1" fill={HAIR_HI} />
-        <rect x="4" y="5" width="12" height="1" fill={HAIR_SH} />
-        {/* cara con ceja de sombra */}
-        <rect x="5" y="7" width="10" height="4" fill={SKIN2} />
-        <rect x="5" y="7" width="10" height="1" fill={SKIN_SH} />
-        {/* ojos de 2px (estilo referencia) */}
-        <rect x="7" y="8" width="1" height="2" fill={DARKK} />
-        <rect x="12" y="8" width="1" height="2" fill={DARKK} />
-        {/* boca */}
-        <rect x="9" y="10" width="2" height="1" fill={SKIN_SH} />
+        {/* cabeza + torso + short por matriz */}
+        <PixelGrid rows={JARVIS_BODY} palette={JARVIS_PALETTE} />
+
         {/* headset: auriculares + micrófono con LED */}
-        <rect x="4" y="7" width="1" height="3" fill={GEAR} />
-        <rect x="15" y="7" width="1" height="3" fill={GEAR} />
-        <rect x="14" y="10" width="2" height="1" fill={GEAR} />
-        <rect x="13" y="10" width="1" height="1" fill="#66f28a" />
+        <rect x="1" y="7" width="1" height="3" fill={GEAR} />
+        <rect x="20" y="7" width="1" height="3" fill={GEAR} />
+        <rect x="17" y="10" width="3" height="1" fill={GEAR} />
+        <rect x="16" y="10" width="1" height="1" fill="#66f28a" />
       </g>
 
       {/* ===== balón (siempre a su pie) ===== */}
-      <circle cx="17.5" cy="29.5" r="2.4" fill="#ffffff" stroke={OUT} strokeWidth="0.6" />
-      <rect x="16.5" y="28.5" width="2" height="2" fill={OUT} />
-      <rect x="15.4" y="30.2" width="1" height="1" fill={OUT} />
-      <rect x="18.6" y="30.6" width="1" height="1" fill={OUT} />
-      <rect x="18.2" y="27.2" width="1" height="1" fill={OUT} />
+      <circle cx="19.5" cy="31.5" r="2.4" fill="#ffffff" stroke={OUT} strokeWidth="0.6" />
+      <rect x="18.5" y="30.5" width="2" height="2" fill={OUT} />
+      <rect x="17.4" y="32.2" width="1" height="1" fill={OUT} />
+      <rect x="20.6" y="32.4" width="1" height="1" fill={OUT} />
+      <rect x="20.2" y="29.2" width="1" height="1" fill={OUT} />
     </svg>
   );
 }
@@ -433,7 +445,7 @@ export default function JarvisCharacter({ state, x, y, walking }: Props) {
         blinking={state === "running" || state === "thinking"}
       />
       {/* sin filtros ni CSS-bob: la animación real la llevan los frames */}
-      <div className="relative w-full aspect-[20/32] mt-0.5">
+      <div className="relative w-full aspect-[22/34] mt-0.5">
         <div className="sprite-shadow" />
         <JarvisSprite moving={moving} frame={frame} />
       </div>
