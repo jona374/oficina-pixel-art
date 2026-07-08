@@ -13,6 +13,17 @@ import {
 import NunCharacter from "./NunCharacter";
 import FreeKnightCharacter, { useFacing } from "@/characters/freeKnight/FreeKnightCharacter";
 import { FREE_KNIGHT_CONFIG } from "@/characters/freeKnight/config";
+import SheetCharacter from "@/characters/sheetCharacter/SheetCharacter";
+import {
+  sheetMapWidthPct,
+  type SheetCharacterConfig,
+} from "@/characters/sheetCharacter/types";
+import {
+  SHEET_CHARACTERS,
+  SAMURAI_CONFIG,
+  MINOTAUR_CONFIG,
+  WIZARD_CONFIG,
+} from "@/characters/sheetCharacter/configs";
 
 /* El mapa se modela en una cuadrícula de 20x14 "tiles" convertidos a
  * porcentajes. La sala está inset sobre un fondo oscuro, como un mapa
@@ -164,6 +175,51 @@ const KNIGHT_LIFE: WandererConfig = {
   minRest: 9000,
   maxRest: 20000,
 };
+
+/* Habitantes de spritesheet (samurai, minotaur, wizard). Cada uno
+ * ronda una zona distinta para no amontonarse. Puntos = pies. */
+const SHEET_HABITANTS: { config: (typeof SHEET_CHARACTERS)[number]; life: WandererConfig }[] =
+  [
+    {
+      config: SAMURAI_CONFIG,
+      life: {
+        id: "samurai",
+        home: { tx: 8.2, ty: 8.3 },
+        pois: [
+          { tx: 6.4, ty: 8.4 },
+          { tx: 9.2, ty: 6.6 },
+        ],
+        minRest: 9000,
+        maxRest: 19000,
+      },
+    },
+    {
+      config: WIZARD_CONFIG,
+      life: {
+        id: "wizard",
+        home: { tx: 2.9, ty: 9.2 },
+        pois: [
+          { tx: 5.0, ty: 8.0 },
+          { tx: 2.9, ty: 11.0 },
+        ],
+        minRest: 11000,
+        maxRest: 24000,
+      },
+    },
+    {
+      config: MINOTAUR_CONFIG,
+      life: {
+        id: "minotaur",
+        home: { tx: 10.6, ty: 9.8 },
+        pois: [
+          { tx: 8.4, ty: 8.0 },
+          { tx: 10.4, ty: 6.7 },
+        ],
+        minRest: 12000,
+        maxRest: 26000,
+      },
+    },
+  ];
 
 const JARVIS_PATROL: WandererConfig[] = [
   {
@@ -744,6 +800,41 @@ function KnightNPC({ life }: { life?: WandererState }) {
   );
 }
 
+/** Habitante de spritesheet genérico: pies anclados al piso, etiqueta
+ *  centrada sobre la cabeza, tamaño por la escala estándar de adultos. */
+function SheetHabitant({
+  config,
+  life,
+  home,
+}: {
+  config: SheetCharacterConfig;
+  life?: WandererState;
+  home: TilePos;
+}) {
+  const pos = life?.pos ?? home;
+  const facing = useFacing(pos.tx);
+  return (
+    <div
+      className="absolute z-20 character-move"
+      style={{
+        left: `${px(pos.tx)}%`,
+        top: `${py(pos.ty)}%`,
+        width: `${sheetMapWidthPct(config)}%`,
+        transform: "translate(-50%, -100%)",
+        transformOrigin: "bottom center",
+      }}
+    >
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-0.5 whitespace-nowrap">
+        <FloatingLabel name={config.name} color={config.labelColor} blinking={!!life?.walking} />
+      </div>
+      <div className="relative">
+        <div className="sprite-shadow" style={{ left: "22%", width: "56%", bottom: "0px" }} />
+        <SheetCharacter config={config} walking={life?.walking} facing={facing} />
+      </div>
+    </div>
+  );
+}
+
 /* ===== Mapa principal ===== */
 
 const NPC_LIFE: WandererConfig[] = [
@@ -754,6 +845,7 @@ const NPC_LIFE: WandererConfig[] = [
   })),
   ORACLE_LIFE,
   KNIGHT_LIFE,
+  ...SHEET_HABITANTS.map((h) => h.life),
 ];
 
 export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
@@ -968,6 +1060,16 @@ export default function RetroOfficeMap({ status }: { status: AgentStatus }) {
 
       {/* Free Knight: avatar de spritesheet (FreeKnight_v1) */}
       <KnightNPC life={npcLife["knight"]} />
+
+      {/* Samurai, Wizard y Minotaur (packs CraftPix) */}
+      {SHEET_HABITANTS.map((h) => (
+        <SheetHabitant
+          key={h.config.id}
+          config={h.config}
+          life={npcLife[h.config.id]}
+          home={h.life.home}
+        />
+      ))}
 
       {/* Jarvis */}
       <JarvisCharacter
