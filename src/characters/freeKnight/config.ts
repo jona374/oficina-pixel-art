@@ -10,6 +10,8 @@
  * registrados pero NO se usan en la oficina.
  */
 
+import { adultBoxWidthPct } from "../scale";
+
 export type KnightAnimName = "idle" | "walk" | "turn" | "jump" | "fall";
 
 export type KnightAnimDef = {
@@ -39,8 +41,10 @@ export const FREE_KNIGHT_CONFIG: {
   frameWidth: 120,
   frameHeight: 80,
   crop: KNIGHT_CROP,
-  // Con el recorte el personaje se ve ~3x mas grande a igual caja.
-  mapWidthPct: 7.5,
+  // Tamaño derivado de la escala estándar de adultos (altura visible
+  // objetivo), calculado desde el recorte real del personaje.
+  // = 9.7 * (38/42) ≈ 8.78 (~+17% respecto al 7.5 anterior).
+  mapWidthPct: adultBoxWidthPct(KNIGHT_CROP.w, KNIGHT_CROP.h),
   defaultAnimation: "idle",
   animations: {
     idle: { file: "_Idle.png", frames: 10, fps: 8, loop: true },
