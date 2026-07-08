@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import type { AgentStatus } from "@/types/agent";
 import FloatingLabel from "./FloatingLabel";
+import CharacterInfoPanel from "./characters/CharacterInfoPanel";
+import { AGENT_PROFILES } from "@/characters/agentProfiles";
 import { JarvisSprite } from "./JarvisCharacter";
 import { JARVIS_ANIMATIONS } from "@/lib/characterAnimations";
 import { useCharacterAnimation } from "@/hooks/useCharacterAnimation";
@@ -83,12 +86,16 @@ function Habitant({
   overridePos,
   overrideWalking,
   agentThinking,
+  selected,
+  onSelect,
 }: {
   def: HabitantDef;
   life?: WandererState;
   overridePos?: { x: number; y: number };
   overrideWalking?: boolean;
   agentThinking: boolean;
+  selected: boolean;
+  onSelect: (id: string) => void;
 }) {
   const pos = overridePos ?? (life ? { x: life.pos.tx, y: life.pos.ty } : def.home);
   const walking = overrideWalking ?? !!life?.walking;
@@ -96,7 +103,7 @@ function Habitant({
   const width = habitantWidthPct(def.vw, def.vh);
   return (
     <div
-      className="absolute character-move"
+      className={`hab-wrapper absolute character-move ${selected ? "is-selected" : ""}`}
       style={{
         left: `${pos.x}%`,
         top: `${pos.y}%`,
@@ -105,13 +112,26 @@ function Habitant({
         transformOrigin: "bottom center",
         // profundidad isométrica: quien está más abajo (mayor y) tapa
         // a quien está más arriba (más atrás en la sala).
-        zIndex: 20 + Math.round(pos.y),
+        zIndex: 20 + Math.round(pos.y) + (selected ? 100 : 0),
       }}
     >
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-0.5 whitespace-nowrap">
+      <div className="character-label absolute left-1/2 -translate-x-1/2 bottom-full mb-0.5 whitespace-nowrap">
         <FloatingLabel name={def.label} color={def.color} blinking={walking} />
       </div>
-      <div className="relative">
+      <div
+        className="hab-hit relative"
+        role="button"
+        tabIndex={0}
+        aria-label={`Ver ficha de ${def.label}`}
+        onClick={() => onSelect(def.id)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect(def.id);
+          }
+        }}
+      >
+        {selected && <div className="selection-ring" />}
         <div className="sprite-shadow" style={{ left: "22%", width: "56%", bottom: "0px" }} />
         <HabitantSprite
           def={def}
@@ -125,9 +145,19 @@ function Habitant({
   );
 }
 
+const STATE_LABEL: Record<string, { text: string; color: string }> = {
+  idle: { text: "En reposo", color: "#62ff8e" },
+  thinking: { text: "Pensando", color: "#f6c85f" },
+  running: { text: "Ejecutando", color: "#60a5e0" },
+  done: { text: "Listo", color: "#62ff8e" },
+  error: { text: "Error", color: "#ff5c7a" },
+  disconnected: { text: "Desconectado", color: "#70708a" },
+};
+
 /** Mapa principal: Medieval Fantasy Hub. */
 export default function MedievalHubMap({ status }: { status: AgentStatus }) {
   const connected = status.state !== "disconnected";
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Vida de la oficina para todos los habitantes (posiciones en %).
   const lifeConfigs: WandererConfig[] = HABITANTS.map((h) => ({
@@ -163,23 +193,65 @@ export default function MedievalHubMap({ status }: { status: AgentStatus }) {
 
       {/* habitantes */}
       {HABITANTS.map((h) => {
-        if (h.kind === "jarvis") {
-          return (
-            <Habitant
-              key={h.id}
-              def={h}
-              life={life[h.id]}
-              overridePos={running ? JARVIS_ACTION_SPOT : undefined}
-              overrideWalking={running ? true : undefined}
-              agentThinking={thinking}
-            />
-          );
-        }
-        return <Habitant key={h.id} def={h} life={life[h.id]} agentThinking={thinking} />;
+        const isJarvis = h.kind === "jarvis";
+        return (
+          <Habitant
+            key={h.id}
+            def={h}
+            life={life[h.id]}
+            overridePos={isJarvis && running ? JARVIS_ACTION_SPOT : undefined}
+            overrideWalking={isJarvis && running ? true : undefined}
+            agentThinking={thinking}
+            selected={selectedId === h.id}
+            onSelect={setSelectedId}
+          />
+        );
       })}
 
       {/* viñeta suave del marco */}
       <div className="map-vignette" />
+
+      {/* panel de ficha del personaje seleccionado */}
+      {selectedId && AGENT_PROFILES[selectedId] && (() => {
+        const def = HABITANTS.find((h) => h.id === selectedId)!;
+        // Jarvis refleja el estado real del agente; los demás, su
+        // actividad actual (caminando / en reposo).
+        const live = life[selectedId];
+        let text: string, color: string;
+        if (def.kind === "jarvis") {
+          const s = STATE_LABEL[status.state] ?? STATE_LABEL.idle;
+          text = s.text;
+          color = s.color;
+        } else if (live?.walking) {
+          text = "En movimiento";
+          color = "#60a5e0";
+        } else {
+          text = "En reposo";
+          color = "#62ff8e";
+        }
+        return (
+          <CharacterInfoPanel
+            profile={AGENT_PROFILES[selectedId]}
+            liveStatus={text}
+            statusColor={color}
+            sprite={
+              <div
+                className="w-full"
+                style={{ aspectRatio: `${def.vw}/${def.vh}` }}
+              >
+                <HabitantSprite
+                  def={def}
+                  walking={false}
+                  facing="right"
+                  agentThinking={false}
+                  away={false}
+                />
+              </div>
+            }
+            onClose={() => setSelectedId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

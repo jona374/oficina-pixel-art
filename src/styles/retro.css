@@ -306,6 +306,133 @@
   background: radial-gradient(circle, var(--green-glow) 0%, transparent 65%);
 }
 
+/* ===== Etiquetas de personajes (mapa) ===== */
+.character-label {
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+/* Desktop con mouse: la etiqueta aparece al pasar el cursor o al
+   seleccionar el personaje (menos ruido visual, más "videojuego"). */
+@media (hover: hover) and (min-width: 769px) {
+  .character-label {
+    opacity: 0;
+  }
+  .hab-wrapper:hover .character-label,
+  .hab-wrapper.is-selected .character-label {
+    opacity: 1;
+  }
+}
+/* Móvil: se ocultan por completo (se consultan tocando al personaje). */
+@media (max-width: 768px) {
+  .character-label {
+    display: none !important;
+  }
+}
+
+/* Zona clickeable del personaje */
+.hab-hit {
+  cursor: pointer;
+}
+.hab-hit:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* Aro de selección bajo los pies (no tapa el sprite) */
+@keyframes ring-pulse {
+  0%, 100% { opacity: 0.85; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+}
+.selection-ring {
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 72%;
+  height: 16%;
+  border-radius: 50%;
+  border: 2px solid rgba(224, 184, 80, 0.95);
+  box-shadow: 0 0 12px rgba(224, 184, 80, 0.6), inset 0 0 6px rgba(224, 184, 80, 0.4);
+  pointer-events: none;
+  animation: ring-pulse 1.4s ease-in-out infinite;
+}
+
+/* ===== Panel de personaje (RPG) ===== */
+.rpg-panel {
+  background:
+    linear-gradient(180deg, rgba(40, 30, 20, 0.98), rgba(26, 19, 13, 0.98));
+  border: 2px solid #7a5a2e;
+  box-shadow:
+    0 0 0 2px #3a2a16,
+    inset 0 0 0 1px rgba(224, 184, 80, 0.25),
+    0 18px 50px rgba(0, 0, 0, 0.6);
+}
+.rpg-title {
+  font-family: var(--font-pixel);
+  color: #f0cf7a;
+  text-shadow: 0 0 8px rgba(224, 184, 80, 0.5);
+}
+.rpg-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #7a5a2e 20%, #7a5a2e 80%, transparent);
+}
+.rpg-btn {
+  border: 1px solid #7a5a2e;
+  background: rgba(224, 184, 80, 0.08);
+  color: #e8d6a8;
+  transition: background 0.12s, border-color 0.12s;
+}
+.rpg-btn:hover:not(:disabled) {
+  background: rgba(224, 184, 80, 0.2);
+  border-color: #d8b040;
+}
+.rpg-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.skill-card {
+  border: 1px solid #4a3820;
+  background: rgba(20, 15, 10, 0.6);
+}
+.skill-card.is-off {
+  opacity: 0.5;
+}
+@keyframes rpg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rpg-anim-in {
+  animation: rpg-in 0.18s ease-out both;
+}
+/* scrim que cierra al tocar fuera (no bloquea del todo) */
+.rpg-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  background: rgba(0, 0, 0, 0.3);
+}
+/* posición del panel: flotante a la derecha en desktop */
+.character-info-panel {
+  position: fixed;
+  z-index: 200;
+  right: 20px;
+  top: 84px;
+  width: 380px;
+  max-width: calc(100vw - 40px);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+/* móvil: bottom sheet */
+@media (max-width: 768px) {
+  .character-info-panel {
+    left: 10px;
+    right: 10px;
+    top: auto;
+    bottom: 10px;
+    width: auto;
+    max-height: 72vh;
+  }
+}
+
 /* ===== Consola ===== */
 
 .console-scroll {
