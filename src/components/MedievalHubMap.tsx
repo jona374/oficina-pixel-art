@@ -13,6 +13,7 @@ import {
   SAMURAI_CONFIG,
   MINOTAUR_CONFIG,
   WIZARD_CONFIG,
+  MARINA_CONFIG,
 } from "@/characters/sheetCharacter/configs";
 import type { SheetCharacterConfig } from "@/characters/sheetCharacter/types";
 import { useOfficeLife, type WandererConfig, type WandererState } from "@/hooks/useOfficeLife";
@@ -28,6 +29,7 @@ const SHEET_CONFIGS: Record<string, SheetCharacterConfig> = {
   samurai: SAMURAI_CONFIG,
   minotaur: MINOTAUR_CONFIG,
   wizard: WIZARD_CONFIG,
+  marina: MARINA_CONFIG,
 };
 
 /** Cuerpo de Jarvis animado por frames (idle/walk). */

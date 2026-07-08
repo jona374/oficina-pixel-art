@@ -50,8 +50,26 @@ export const WIZARD_CONFIG: SheetCharacterConfig = {
   },
 };
 
+/* Pack "Free" (4 direcciones, frames 64x128). Usamos la vista lateral
+ * derecha (fila 2), extraída a tiras horizontales. Recorte medido por
+ * el bounding box real y centrado en el idle. */
+export const MARINA_CONFIG: SheetCharacterConfig = {
+  id: "marina",
+  name: "Marina",
+  basePath: "/assets/characters/marina",
+  frameWidth: 64,
+  frameHeight: 128,
+  crop: { x: 6, y: 12, w: 55, h: 102 },
+  labelColor: "#8ec5ff",
+  animations: {
+    idle: { file: "Idle.png", frames: 8, fps: 6, loop: true },
+    walk: { file: "Walk.png", frames: 10, fps: 9, loop: true },
+  },
+};
+
 export const SHEET_CHARACTERS: SheetCharacterConfig[] = [
   SAMURAI_CONFIG,
   MINOTAUR_CONFIG,
   WIZARD_CONFIG,
+  MARINA_CONFIG,
 ];

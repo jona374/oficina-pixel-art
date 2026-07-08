@@ -38,7 +38,7 @@ export type HabitantDef = {
   castId?: string;
   idleClass?: string;
   /** Solo para kind "sheet": clave del config del personaje. */
-  sheetKey?: "samurai" | "minotaur" | "wizard";
+  sheetKey?: "samurai" | "minotaur" | "wizard" | "marina";
 };
 
 /**
@@ -99,6 +99,13 @@ export const HABITANTS: HabitantDef[] = [
     id: "browser", kind: "cast", castId: "browser", idleClass: "anim-read",
     label: "Browser", color: "#60a5e0", vw: 22, vh: 24, home: { x: 66, y: 71 },
     pois: [{ x: 63, y: 68 }, { x: 68, y: 74 }], minRest: 10000, maxRest: 22000,
+  },
+  // — Marina (pack Free), piso abierto derecha-baja —
+  {
+    id: "marina", kind: "sheet", sheetKey: "marina", label: "Marina", color: "#8ec5ff",
+    vw: 55, vh: 102, home: { x: 61, y: 78 },
+    pois: [{ x: 57, y: 81 }, { x: 64, y: 75 }],
+    minRest: 10000, maxRest: 22000,
   },
   // ── Banda del frente (entrada / zona baja) ──
   {
