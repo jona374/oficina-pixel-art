@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import GatewayLogin from "@/components/GatewayLogin";
-import RetroOfficeMap from "@/components/RetroOfficeMap";
+import MedievalHubMap from "@/components/MedievalHubMap";
 import CommandConsole from "@/components/CommandConsole";
 import StatusPanel from "@/components/StatusPanel";
 import TaskPanel from "@/components/TaskPanel";
@@ -48,8 +48,8 @@ export default function Home() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         {/* columna izquierda: oficina + consola */}
         <div className="flex flex-col gap-4 min-w-0">
-          <div className="w-full max-w-[780px] mx-auto">
-            <RetroOfficeMap status={status} />
+          <div className="w-full max-w-[720px] mx-auto">
+            <MedievalHubMap status={status} />
           </div>
           <div className="h-64 lg:h-72">
             <CommandConsole logs={logs} />
