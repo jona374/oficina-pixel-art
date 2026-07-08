@@ -94,13 +94,16 @@ function Habitant({
   const width = habitantWidthPct(def.vw, def.vh);
   return (
     <div
-      className="absolute z-20 character-move"
+      className="absolute character-move"
       style={{
         left: `${pos.x}%`,
         top: `${pos.y}%`,
         width: `${width}%`,
         transform: "translate(-50%, -100%)",
         transformOrigin: "bottom center",
+        // profundidad isométrica: quien está más abajo (mayor y) tapa
+        // a quien está más arriba (más atrás en la sala).
+        zIndex: 20 + Math.round(pos.y),
       }}
     >
       <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-0.5 whitespace-nowrap">
