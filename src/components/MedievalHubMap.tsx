@@ -19,6 +19,9 @@ import {
 } from "@/characters/sheetCharacter/configs";
 import type { SheetCharacterConfig } from "@/characters/sheetCharacter/types";
 import { useOfficeLife, type WandererConfig, type WandererState } from "@/hooks/useOfficeLife";
+import { useManualControl } from "@/hooks/useManualControl";
+import { isWalkable } from "@/environments/medievalHub/walkable";
+import Joystick from "./immersive/Joystick";
 import {
   MEDIEVAL_HUB,
   HABITANTS,
@@ -87,6 +90,7 @@ function Habitant({
   agentThinking,
   selected,
   onSelect,
+  facingOverride,
 }: {
   def: HabitantDef;
   life?: WandererState;
@@ -95,10 +99,12 @@ function Habitant({
   agentThinking: boolean;
   selected: boolean;
   onSelect: (id: string) => void;
+  facingOverride?: "left" | "right";
 }) {
   const pos = overridePos ?? (life ? { x: life.pos.tx, y: life.pos.ty } : def.home);
   const walking = overrideWalking ?? !!life?.walking;
-  const facing = useFacing(pos.x);
+  const autoFacing = useFacing(pos.x);
+  const facing = facingOverride ?? autoFacing;
   const width = habitantWidthPct(def.vw, def.vh);
   return (
     <div
@@ -121,8 +127,11 @@ function Habitant({
         className="hab-hit relative"
         role="button"
         tabIndex={0}
-        aria-label={`Ver ficha de ${def.label}`}
-        onClick={() => onSelect(def.id)}
+        aria-label={`Seleccionar a ${def.label}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect(def.id);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -159,10 +168,16 @@ export default function MedievalHubMap({
   status,
   selectedId,
   onSelect,
+  fichaOpen,
+  onOpenFicha,
+  onCloseFicha,
 }: {
   status: AgentStatus;
   selectedId: string | null;
   onSelect: (id: string | null) => void;
+  fichaOpen: boolean;
+  onOpenFicha: () => void;
+  onCloseFicha: () => void;
 }) {
   const connected = status.state !== "disconnected";
   const setSelectedId = onSelect;
@@ -181,6 +196,30 @@ export default function MedievalHubMap({
   const running = status.state === "running";
   const thinking = status.state === "thinking";
 
+  // Control manual del personaje seleccionado (pausa su rutina auto).
+  const selectedDef = selectedId ? HABITANTS.find((h) => h.id === selectedId) : null;
+  const selLife = selectedId ? life[selectedId] : undefined;
+  const startPos = selectedDef
+    ? selLife
+      ? { x: selLife.pos.tx, y: selLife.pos.ty }
+      : selectedDef.home
+    : null;
+  const control = useManualControl({
+    selectedId,
+    startPos,
+    isWalkable,
+    speed: selectedDef?.moveSpeed ?? 15,
+  });
+
+  // click-to-move: tocar el piso caminable mueve al seleccionado.
+  const onFloorClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!selectedId) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    control.moveTo(x, y);
+  };
+
   return (
     <div
       className="crt-frame w-full"
@@ -188,6 +227,7 @@ export default function MedievalHubMap({
         aspectRatio: `${MEDIEVAL_HUB.width}/${MEDIEVAL_HUB.height}`,
         backgroundColor: "#100c0a",
       }}
+      onClick={onFloorClick}
     >
       {/* fondo del entorno */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -202,15 +242,24 @@ export default function MedievalHubMap({
       {/* habitantes */}
       {HABITANTS.map((h) => {
         const isJarvis = h.kind === "jarvis";
+        const isSel = selectedId === h.id;
+        const manual = isSel; // seleccionado = control manual (rutina pausada)
         return (
           <Habitant
             key={h.id}
             def={h}
             life={life[h.id]}
-            overridePos={isJarvis && running ? JARVIS_ACTION_SPOT : undefined}
-            overrideWalking={isJarvis && running ? true : undefined}
+            overridePos={
+              manual
+                ? control.pos
+                : isJarvis && running
+                  ? JARVIS_ACTION_SPOT
+                  : undefined
+            }
+            overrideWalking={manual ? control.moving : isJarvis && running ? true : undefined}
+            facingOverride={manual ? control.facing : undefined}
             agentThinking={thinking}
-            selected={selectedId === h.id}
+            selected={isSel}
             onSelect={setSelectedId}
           />
         );
@@ -219,18 +268,42 @@ export default function MedievalHubMap({
       {/* viñeta suave del marco */}
       <div className="map-vignette" />
 
-      {/* panel de ficha del personaje seleccionado */}
-      {selectedId && AGENT_PROFILES[selectedId] && (() => {
-        const def = HABITANTS.find((h) => h.id === selectedId)!;
-        // Jarvis refleja el estado real del agente; los demás, su
-        // actividad actual (caminando / en reposo).
-        const live = life[selectedId];
+      {/* HUD de control del personaje seleccionado */}
+      {selectedId && selectedDef && (
+        <>
+          {/* joystick (móvil / también con mouse) */}
+          <div className="control-joystick">
+            <Joystick onChange={control.setJoystick} />
+          </div>
+          {/* barra: nombre + ficha + soltar */}
+          <div className="control-bar rpg-panel rounded-md px-3 py-2 flex items-center gap-3">
+            <span className="rpg-title text-[10px]">CONTROLANDO · {selectedDef.label}</span>
+            <span className="hidden md:inline text-[13px] font-term text-[#9a8b6a]">
+              WASD / flechas · clic para ir
+            </span>
+            <button onClick={onOpenFicha} className="rpg-btn text-[9px] font-pixel px-2.5 py-1 rounded">
+              FICHA
+            </button>
+            <button
+              onClick={() => setSelectedId(null)}
+              aria-label="Soltar personaje"
+              className="rpg-btn text-[9px] font-pixel px-2.5 py-1 rounded"
+            >
+              SOLTAR
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ficha RPG (bajo demanda: botón FICHA o menú Agentes) */}
+      {fichaOpen && selectedId && AGENT_PROFILES[selectedId] && selectedDef && (() => {
+        const def = selectedDef;
         let text: string, color: string;
         if (def.kind === "jarvis") {
           const s = STATE_LABEL[status.state] ?? STATE_LABEL.idle;
           text = s.text;
           color = s.color;
-        } else if (live?.walking) {
+        } else if (control.moving) {
           text = "En movimiento";
           color = "#60a5e0";
         } else {
@@ -243,10 +316,7 @@ export default function MedievalHubMap({
             liveStatus={text}
             statusColor={color}
             sprite={
-              <div
-                className="w-full"
-                style={{ aspectRatio: `${def.vw}/${def.vh}` }}
-              >
+              <div className="w-full" style={{ aspectRatio: `${def.vw}/${def.vh}` }}>
                 <HabitantSprite
                   def={def}
                   walking={false}
@@ -256,7 +326,7 @@ export default function MedievalHubMap({
                 />
               </div>
             }
-            onClose={() => setSelectedId(null)}
+            onClose={onCloseFicha}
           />
         );
       })()}

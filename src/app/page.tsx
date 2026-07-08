@@ -21,6 +21,7 @@ export default function Home() {
   const [immersive, setImmersive] = useState(true);
   const [activePanel, setActivePanel] = useState<PanelKey | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
+  const [fichaOpen, setFichaOpen] = useState(false);
 
   if (!authenticated) {
     return <GatewayLogin onAuthenticated={() => setAuthenticated(true)} />;
@@ -30,7 +31,13 @@ export default function Home() {
     <MedievalHubMap
       status={status}
       selectedId={selectedCharacter}
-      onSelect={setSelectedCharacter}
+      onSelect={(id) => {
+        setSelectedCharacter(id);
+        if (!id) setFichaOpen(false);
+      }}
+      fichaOpen={fichaOpen}
+      onOpenFicha={() => setFichaOpen(true)}
+      onCloseFicha={() => setFichaOpen(false)}
     />
   );
 
@@ -117,6 +124,7 @@ export default function Home() {
           <AgentRoster
             onPick={(id) => {
               setSelectedCharacter(id);
+              setFichaOpen(true);
               setActivePanel(null);
             }}
           />

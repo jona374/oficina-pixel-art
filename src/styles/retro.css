@@ -493,6 +493,30 @@
   top: 14px;
 }
 
+/* HUD de control manual */
+.control-joystick {
+  position: fixed;
+  z-index: 208;
+  left: 18px;
+  bottom: 18px;
+}
+.control-bar {
+  position: fixed;
+  z-index: 208;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 24px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+/* en móvil, la barra sube un poco para no chocar con el joystick/menú */
+@media (max-width: 768px) {
+  .control-bar {
+    bottom: 124px;
+  }
+}
+
 /* ===== Consola ===== */
 
 .console-scroll {

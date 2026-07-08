@@ -34,6 +34,8 @@ export type HabitantDef = {
   pois: Spot[];
   minRest: number;
   maxRest: number;
+  /** Velocidad de control manual (%/seg). Modular por personaje. */
+  moveSpeed?: number;
   /** Solo para kind "cast": id del módulo y su animación idle. */
   castId?: string;
   idleClass?: string;
