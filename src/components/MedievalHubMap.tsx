@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { AgentStatus } from "@/types/agent";
 import FloatingLabel from "./FloatingLabel";
 import CharacterInfoPanel from "./characters/CharacterInfoPanel";
@@ -154,10 +153,19 @@ const STATE_LABEL: Record<string, { text: string; color: string }> = {
   disconnected: { text: "Desconectado", color: "#70708a" },
 };
 
-/** Mapa principal: Medieval Fantasy Hub. */
-export default function MedievalHubMap({ status }: { status: AgentStatus }) {
+/** Mapa principal: Medieval Fantasy Hub. Selección controlada desde
+ *  la página (para que el menú "Agentes" también abra fichas). */
+export default function MedievalHubMap({
+  status,
+  selectedId,
+  onSelect,
+}: {
+  status: AgentStatus;
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+}) {
   const connected = status.state !== "disconnected";
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const setSelectedId = onSelect;
 
   // Vida de la oficina para todos los habitantes (posiciones en %).
   const lifeConfigs: WandererConfig[] = HABITANTS.map((h) => ({

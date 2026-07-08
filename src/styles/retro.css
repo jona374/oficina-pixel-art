@@ -433,6 +433,66 @@
   }
 }
 
+/* ===== Modo inmersivo: dock flotante genérico y menú ===== */
+.floating-dock {
+  position: fixed;
+  z-index: 200;
+  right: 20px;
+  top: 20px;
+  width: 400px;
+  max-width: calc(100vw - 40px);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 768px) {
+  .floating-dock {
+    left: 10px;
+    right: 10px;
+    top: auto;
+    bottom: 10px;
+    width: auto;
+    max-height: 78vh;
+  }
+}
+
+/* Botón del menú inmersivo */
+.menu-fab {
+  position: fixed;
+  z-index: 210;
+  right: 18px;
+  bottom: 18px;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.menu-list {
+  position: fixed;
+  z-index: 210;
+  right: 18px;
+  bottom: 80px;
+  width: 190px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+}
+.menu-item:hover {
+  background: rgba(224, 184, 80, 0.14);
+}
+/* Marca discreta arriba a la izquierda */
+.brand-overlay {
+  position: fixed;
+  z-index: 205;
+  left: 16px;
+  top: 14px;
+}
+
 /* ===== Consola ===== */
 
 .console-scroll {
